@@ -42,6 +42,7 @@ const rpc = createBunRpc({
 	createPrompt: async ({ folderId, title }) => store.createPrompt(folderId, title),
 	savePrompt: async ({ promptId, title, bodyMarkdown }) =>
 		store.savePrompt(promptId, title, bodyMarkdown),
+	movePrompt: async ({ promptId, folderId }) => store.movePrompt(promptId, folderId),
 	renamePrompt: async ({ promptId, title }) => store.renamePrompt(promptId, title),
 	deletePrompt: async ({ promptId }) => {
 		await store.deletePrompt(promptId);
@@ -93,7 +94,7 @@ const rpc = createBunRpc({
 });
 
 const mainWindow = new BrowserWindow({
-	title: "Prompt Store",
+	title: "Your prompt library",
 	url,
 	rpc,
 	titleBarStyle: "default",
@@ -107,8 +108,10 @@ const mainWindow = new BrowserWindow({
 
 mainWindow.webview.on("did-navigate", async () => {
 	const folders = await store.listFolders();
-	const title = folders[0]?.name ? `Prompt Store - ${folders[0].name}` : "Prompt Store";
+	const title = folders[0]?.name
+		? `Your prompt library - ${folders[0].name}`
+		: "Your prompt library";
 	mainWindow.setTitle(title);
 });
 
-console.log("Prompt Store app started!");
+console.log("Your prompt library app started!");

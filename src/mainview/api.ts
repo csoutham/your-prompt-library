@@ -18,6 +18,8 @@ export const promptStoreApi = {
 		rpc.request.createPrompt({ folderId, title }),
 	savePrompt: (promptId: string, title: string, bodyMarkdown: string) =>
 		rpc.request.savePrompt({ promptId, title, bodyMarkdown }),
+	movePrompt: (promptId: string, folderId: string) =>
+		rpc.request.movePrompt({ promptId, folderId }),
 	renamePrompt: (promptId: string, title: string) =>
 		rpc.request.renamePrompt({ promptId, title }),
 	deletePrompt: (promptId: string) => rpc.request.deletePrompt({ promptId }),

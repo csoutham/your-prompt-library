@@ -74,6 +74,13 @@ export type PromptStoreRpcSchema = {
 				};
 				response: PromptRecord;
 			};
+			movePrompt: {
+				params: {
+					promptId: string;
+					folderId: string;
+				};
+				response: PromptRecord;
+			};
 			renamePrompt: {
 				params: { promptId: string; title: string };
 				response: PromptRecord;

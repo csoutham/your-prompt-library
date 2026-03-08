@@ -80,6 +80,18 @@ describe("PromptStore", () => {
 		expect(saved.title).toBe("My Prompt Title");
 	});
 
+	test("moves prompts between folders", async () => {
+		const store = new PromptStore(rootDir);
+		const source = await store.createFolder("Source", null);
+		const destination = await store.createFolder("Destination", source.id);
+		const prompt = await store.createPrompt(source.id, "Draft");
+		const moved = await store.movePrompt(prompt.id, destination.id);
+
+		expect(moved.folderId).toBe(destination.id);
+		expect((await store.listPrompts(source.id)).some((entry) => entry.id === prompt.id)).toBe(false);
+		expect((await store.listPrompts(destination.id)).some((entry) => entry.id === prompt.id)).toBe(true);
+	});
+
 	test("deletes an empty folder", async () => {
 		const store = new PromptStore(rootDir);
 		const folder = await store.createFolder("Archive", null);

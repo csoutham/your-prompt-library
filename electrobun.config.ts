@@ -2,9 +2,9 @@ import type { ElectrobunConfig } from "electrobun";
 
 export default {
 	app: {
-		name: "Prompt Store",
+		name: "Your Prompt Library",
 		identifier: "com.promptstore.app",
-		version: "0.5.2",
+		version: "0.6.0",
 	},
 	build: {
 		// Vite builds to dist/, we copy from there

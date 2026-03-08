@@ -169,6 +169,23 @@ export class PromptStore {
 		return prompt;
 	}
 
+	async movePrompt(promptId: string, folderId: string): Promise<PromptRecord> {
+		await this.ensureFolderExists(folderId);
+		const existing = await this.getPrompt(promptId);
+		if (!existing) {
+			throw new PromptStoreError("Prompt not found.");
+		}
+
+		const prompt: PromptRecord = {
+			...existing,
+			folderId,
+			updatedAt: new Date().toISOString(),
+		};
+
+		await this.writePromptFile(prompt);
+		return prompt;
+	}
+
 	async renamePrompt(promptId: string, title: string): Promise<PromptRecord> {
 		const existing = await this.getPrompt(promptId);
 		if (!existing) {

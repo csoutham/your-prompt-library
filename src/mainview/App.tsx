@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	ArrowBendUpRight,
+	CaretDown,
+	Check,
 	Copy,
 	DownloadSimple,
 	FolderPlus,
+	FolderSimpleDashed,
 	PencilSimple,
 	Keyboard,
 	Trash,
@@ -48,6 +51,14 @@ type DialogState =
 			promptId: string;
 	  }
 	| {
+			type: "move-prompt";
+			title: string;
+			description: string;
+			submitLabel: string;
+			promptId: string;
+			initialFolderId: string;
+	  }
+	| {
 			type: "import-library";
 			title: string;
 			description: string;
@@ -77,6 +88,7 @@ function App() {
 	const [dialog, setDialog] = useState<DialogState>(null);
 	const [dialogValue, setDialogValue] = useState("");
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
+	const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 	const dialogInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -173,6 +185,20 @@ function App() {
 		}
 	}, [dialog]);
 
+	useEffect(() => {
+		if (!copiedPromptId) {
+			return;
+		}
+
+		const timeout = window.setTimeout(() => {
+			setCopiedPromptId((current) =>
+				current === copiedPromptId ? null : current,
+			);
+		}, 1500);
+
+		return () => window.clearTimeout(timeout);
+	}, [copiedPromptId]);
+
 	const visiblePrompts = useMemo(() => {
 		const base =
 			searchQuery.trim()
@@ -256,6 +282,10 @@ function App() {
 			setDialogValue(nextDialog.initialValue);
 			return;
 		}
+		if (nextDialog?.type === "move-prompt") {
+			setDialogValue(nextDialog.initialFolderId);
+			return;
+		}
 		setDialogValue("");
 	}
 
@@ -337,6 +367,31 @@ function App() {
 					setStatusMessage("Deleted prompt");
 					break;
 				}
+				case "move-prompt": {
+					const moved = await promptStoreApi.movePrompt(dialog.promptId, dialogValue);
+					setPromptSummaries((current) =>
+						replacePromptSummary(current, summarizePrompt(moved)),
+					);
+					if (selectedPrompt?.id === moved.id) {
+						setSelectedPrompt(moved);
+					}
+					if (searchQuery.trim()) {
+						const results = await promptStoreApi.searchPrompts(searchQuery);
+						setPromptSummaries(results);
+					} else if (selectedFolderId) {
+						const prompts = await promptStoreApi.listPrompts(selectedFolderId);
+						setPromptSummaries((current) =>
+							mergePromptSummaries(current, prompts, selectedFolderId),
+						);
+						if (moved.folderId !== selectedFolderId) {
+							setSelectedPrompt(null);
+							setDraftTitle("");
+							setDraftBody("");
+						}
+					}
+					setStatusMessage(`Moved prompt to "${folderNameFor(moved.folderId, folders)}"`);
+					break;
+				}
 				case "import-library": {
 					const result = await promptStoreApi.importLibrary();
 					if (!result.imported) {
@@ -384,6 +439,7 @@ function App() {
 
 		try {
 			await promptStoreApi.copyPrompt(selectedPrompt.id);
+			setCopiedPromptId(selectedPrompt.id);
 			setStatusMessage(`Copied "${selectedPrompt.title}"`);
 		} catch (error) {
 			setErrorMessage(toMessage(error));
@@ -456,15 +512,14 @@ function App() {
 	}
 
 	if (isLoading) {
-		return <div className="loading-shell">Loading Prompt Store…</div>;
+		return <div className="loading-shell">Loading your prompt library…</div>;
 	}
 
 	return (
 		<div className="app-shell">
 			<header className="app-topbar">
 				<div className="app-topbar__brand">
-					<p className="eyebrow">Prompt Store</p>
-					<h1>Local prompt library</h1>
+					<h1>Your prompt library</h1>
 				</div>
 				<div className="app-topbar__meta">
 					<button
@@ -622,28 +677,30 @@ function App() {
 					<div className="prompt-list-toolbar">
 						<label className="sort-field">
 							<span>Sort</span>
-							<select
-								value={sortMode}
-								onChange={(event) =>
-									setSortMode(event.target.value as "updated" | "title" | "created")
-								}
-							>
-								<option value="updated">Recently updated</option>
-								<option value="created">Recently created</option>
-								<option value="title">Title</option>
-							</select>
+							<div className="select-shell">
+								<select
+									value={sortMode}
+									onChange={(event) =>
+										setSortMode(event.target.value as "updated" | "title" | "created")
+									}
+								>
+									<option value="updated">Recently updated</option>
+									<option value="created">Recently created</option>
+									<option value="title">Title</option>
+								</select>
+								<CaretDown className="select-shell__icon" aria-hidden="true" weight="bold" />
+							</div>
+						</label>
+						<label className="search-field">
+							<span>Search</span>
+							<input
+								ref={searchInputRef}
+								value={searchQuery}
+								onChange={(event) => void handleSearchChange(event.target.value)}
+								placeholder="Search titles and Markdown"
+							/>
 						</label>
 					</div>
-
-					<label className="search-field">
-						<span>Search</span>
-						<input
-							ref={searchInputRef}
-							value={searchQuery}
-							onChange={(event) => void handleSearchChange(event.target.value)}
-							placeholder="Search titles and Markdown"
-						/>
-					</label>
 
 					<div className="prompt-list">
 						{visiblePrompts.length === 0 ? (
@@ -698,11 +755,36 @@ function App() {
 							<button
 								className="button button--icon"
 								disabled={!selectedPrompt}
-								aria-label="Copy prompt"
-								title="Copy prompt"
+								aria-label="Move prompt"
+								title="Move prompt"
+								onClick={() =>
+									selectedPrompt &&
+									openDialog({
+										type: "move-prompt",
+										title: "Move prompt",
+										description: `Move "${selectedPrompt.title}" to another folder or subfolder.`,
+										submitLabel: "Move Prompt",
+										promptId: selectedPrompt.id,
+										initialFolderId: selectedPrompt.folderId,
+									})
+								}
+							>
+								<FolderSimpleDashed className="button__icon-svg" aria-hidden="true" weight="duotone" />
+							</button>
+							<button
+								className={`button button--icon ${
+									copiedPromptId === selectedPrompt?.id ? "button--success" : ""
+								}`}
+								disabled={!selectedPrompt}
+								aria-label={copiedPromptId === selectedPrompt?.id ? "Copied" : "Copy prompt"}
+								title={copiedPromptId === selectedPrompt?.id ? "Copied" : "Copy prompt"}
 								onClick={() => void copyPrompt()}
 							>
-								<Copy className="button__icon-svg" aria-hidden="true" weight="duotone" />
+								{copiedPromptId === selectedPrompt?.id ? (
+									<Check className="button__icon-svg" aria-hidden="true" weight="bold" />
+								) : (
+									<Copy className="button__icon-svg" aria-hidden="true" weight="duotone" />
+								)}
 							</button>
 							<button
 								className="button button--icon button--danger"
@@ -814,6 +896,25 @@ function App() {
 							</label>
 						) : null}
 
+						{dialog.type === "move-prompt" ? (
+							<label className="editor-field">
+								<span>Destination folder</span>
+								<div className="select-shell">
+									<select
+										value={dialogValue}
+										onChange={(event) => setDialogValue(event.target.value)}
+									>
+										{folders.map((folder) => (
+											<option key={folder.id} value={folder.id}>
+												{folderPathLabel(folder, folders)}
+											</option>
+										))}
+									</select>
+									<CaretDown className="select-shell__icon" aria-hidden="true" weight="bold" />
+								</div>
+							</label>
+						) : null}
+
 						{dialog.type === "shortcuts" ? (
 							<div className="shortcut-list">
 								<div className="shortcut-card__row">
@@ -851,7 +952,8 @@ function App() {
 								}`}
 								disabled={
 									isSubmittingDialog ||
-									("initialValue" in dialog && dialogValue.trim().length === 0)
+									(("initialValue" in dialog && dialogValue.trim().length === 0) ||
+										(dialog.type === "move-prompt" && dialogValue.trim().length === 0))
 								}
 								onClick={() => void submitDialog()}
 							>
@@ -937,6 +1039,22 @@ function mergePromptSummaries(
 
 function folderNameFor(folderId: string, folders: FolderRecord[]): string {
 	return folders.find((folder) => folder.id === folderId)?.name ?? "Unknown Folder";
+}
+
+function folderPathLabel(folder: FolderRecord, folders: FolderRecord[]): string {
+	const names: string[] = [folder.name];
+	let parentId = folder.parentId;
+
+	while (parentId) {
+		const parent = folders.find((entry) => entry.id === parentId);
+		if (!parent) {
+			break;
+		}
+		names.unshift(parent.name);
+		parentId = parent.parentId;
+	}
+
+	return names.join(" / ");
 }
 
 function formatTimestamp(value: string): string {
