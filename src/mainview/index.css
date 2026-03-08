@@ -5,16 +5,17 @@
 :root {
 	color-scheme: light;
 	font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-	--bg: #f2ede4;
-	--surface: rgba(255, 251, 245, 0.86);
-	--surface-strong: rgba(252, 248, 241, 0.96);
-	--line: rgba(74, 54, 37, 0.14);
-	--text: #25160f;
-	--muted: #726151;
-	--accent: #9f542c;
-	--accent-strong: #7e3f1b;
+	--bg: #efe8de;
+	--surface: rgba(252, 247, 239, 0.88);
+	--surface-strong: rgba(255, 251, 245, 0.98);
+	--line: rgba(83, 60, 41, 0.14);
+	--text: #21150f;
+	--muted: #6f5f52;
+	--accent: #9b4d23;
+	--accent-strong: #733516;
 	--danger: #b1463e;
-	--shadow: 0 24px 80px rgba(76, 49, 29, 0.14);
+	--shadow: 0 30px 90px rgba(71, 44, 27, 0.14);
+	--headline: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 }
 
 * {
@@ -25,9 +26,9 @@ body {
 	margin: 0;
 	min-height: 100vh;
 	background:
-		radial-gradient(circle at top left, rgba(214, 152, 107, 0.22), transparent 28%),
-		radial-gradient(circle at right center, rgba(157, 112, 74, 0.14), transparent 24%),
-		linear-gradient(180deg, #f5f0e8 0%, #ece2d4 100%);
+		radial-gradient(circle at top left, rgba(192, 126, 78, 0.24), transparent 24%),
+		radial-gradient(circle at 78% 16%, rgba(107, 79, 60, 0.1), transparent 16%),
+		linear-gradient(180deg, #f4eee5 0%, #e6d8c8 100%);
 	color: var(--text);
 }
 
@@ -55,6 +56,58 @@ textarea {
 
 .app-shell {
 	padding: 22px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.app-topbar {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 8px 6px 0;
+}
+
+.app-topbar__brand h1 {
+	margin: 0;
+	font-family: var(--headline);
+	font-size: 2.6rem;
+	line-height: 0.95;
+	letter-spacing: -0.06em;
+}
+
+.app-topbar__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.topbar-pill {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 110px;
+	padding: 12px 14px;
+	border: 1px solid rgba(83, 60, 41, 0.12);
+	border-radius: 16px;
+	background: rgba(255, 250, 244, 0.72);
+}
+
+.topbar-pill span {
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.topbar-pill strong {
+	font-size: 1.05rem;
+}
+
+.topbar-pill--status {
+	background: linear-gradient(135deg, rgba(155, 77, 35, 0.12), rgba(255, 250, 244, 0.8));
 }
 
 .app-frame {
@@ -64,7 +117,7 @@ textarea {
 	border: 1px solid rgba(94, 66, 45, 0.1);
 	border-radius: 28px;
 	overflow: hidden;
-	background: rgba(255, 252, 248, 0.74);
+	background: rgba(255, 252, 248, 0.72);
 	backdrop-filter: blur(22px);
 	box-shadow: var(--shadow);
 }
@@ -107,8 +160,9 @@ textarea {
 .sidebar__masthead h1,
 .panel-header h2 {
 	margin: 0;
-	font-size: 1.7rem;
-	line-height: 1;
+	font-family: var(--headline);
+	font-size: 2rem;
+	line-height: 0.96;
 	letter-spacing: -0.05em;
 }
 
@@ -125,6 +179,34 @@ textarea {
 	margin: 14px 0 0;
 	color: var(--muted);
 	line-height: 1.5;
+}
+
+.sidebar__stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.sidebar-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 14px;
+	border: 1px solid rgba(98, 72, 46, 0.1);
+	border-radius: 16px;
+	background: rgba(255, 250, 244, 0.7);
+}
+
+.sidebar-stat span {
+	font-size: 0.68rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.sidebar-stat strong {
+	font-size: 0.95rem;
 }
 
 .pane-toggle-bar {
@@ -319,7 +401,7 @@ kbd {
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
-	background: rgba(255, 253, 249, 0.6);
+	background: linear-gradient(180deg, rgba(255, 250, 243, 0.72), rgba(248, 239, 229, 0.46));
 	border-right: 1px solid var(--line);
 }
 
@@ -365,6 +447,13 @@ kbd {
 	gap: 18px;
 }
 
+.panel-copy {
+	max-width: 34ch;
+	margin: 10px 0 0;
+	color: var(--muted);
+	line-height: 1.45;
+}
+
 .search-field,
 .editor-field {
 	display: flex;
@@ -408,9 +497,15 @@ kbd {
 	border: 1px solid rgba(95, 70, 47, 0.1);
 	border-radius: 18px;
 	background: var(--surface-strong);
-	box-shadow: 0 12px 30px rgba(81, 54, 32, 0.05);
+	box-shadow: 0 16px 38px rgba(81, 54, 32, 0.06);
 	text-align: left;
 	cursor: pointer;
+	transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.prompt-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 20px 40px rgba(81, 54, 32, 0.08);
 }
 
 .prompt-card--active {
@@ -445,7 +540,7 @@ kbd {
 	flex-direction: column;
 	gap: 18px;
 	background:
-		linear-gradient(180deg, rgba(255, 252, 246, 0.94) 0%, rgba(248, 241, 232, 0.76) 100%);
+		linear-gradient(180deg, rgba(255, 252, 246, 0.96) 0%, rgba(243, 235, 225, 0.82) 100%);
 }
 
 .editor-layout {
@@ -469,6 +564,29 @@ kbd {
 	flex-direction: column;
 	gap: 14px;
 	padding: 18px;
+}
+
+.editor-ribbon {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 16px;
+	background: linear-gradient(135deg, rgba(155, 77, 35, 0.12), rgba(240, 227, 211, 0.5));
+}
+
+.editor-ribbon__label {
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.editor-ribbon__value {
+	font-size: 0.9rem;
+	font-weight: 700;
 }
 
 .editor-meta {
@@ -509,6 +627,8 @@ kbd {
 	flex-direction: column;
 	padding: 18px;
 	overflow: auto;
+	background:
+		linear-gradient(180deg, rgba(250, 244, 235, 0.92), rgba(245, 238, 229, 0.84));
 }
 
 .markdown-preview {
@@ -567,7 +687,8 @@ kbd {
 	justify-content: space-between;
 	gap: 18px;
 	font-size: 0.82rem;
-	padding-top: 4px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(98, 72, 46, 0.08);
 }
 
 .dialog-scrim {
@@ -621,6 +742,11 @@ kbd {
 @media (max-width: 900px) {
 	.app-shell {
 		padding: 12px;
+	}
+
+	.app-topbar {
+		flex-direction: column;
+		align-items: stretch;
 	}
 
 	.app-frame {

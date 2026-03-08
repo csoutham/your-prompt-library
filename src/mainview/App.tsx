@@ -492,6 +492,26 @@ function App() {
 
 	return (
 		<div className="app-shell">
+			<header className="app-topbar">
+				<div className="app-topbar__brand">
+					<p className="eyebrow">Prompt Store</p>
+					<h1>Local prompt library</h1>
+				</div>
+				<div className="app-topbar__meta">
+					<div className="topbar-pill">
+						<span>Folders</span>
+						<strong>{folders.length}</strong>
+					</div>
+					<div className="topbar-pill">
+						<span>Prompts</span>
+						<strong>{promptSummaries.length}</strong>
+					</div>
+					<div className="topbar-pill topbar-pill--status">
+						<span>Status</span>
+						<strong>{isSaving ? "Saving" : "Ready"}</strong>
+					</div>
+				</div>
+			</header>
 			<div
 				className="app-frame"
 				style={{
@@ -506,6 +526,17 @@ function App() {
 						<p className="sidebar__lede">
 							A lightweight library for prompts you want to keep close and searchable.
 						</p>
+					</div>
+
+					<div className="sidebar__stats">
+						<div className="sidebar-stat">
+							<span>Open folder</span>
+							<strong>{selectedFolder?.name ?? "Library"}</strong>
+						</div>
+						<div className="sidebar-stat">
+							<span>Visible prompts</span>
+							<strong>{visiblePrompts.length}</strong>
+						</div>
 					</div>
 
 					<div className="pane-toggle-bar">
@@ -646,6 +677,9 @@ function App() {
 								{searchQuery ? "Search Results" : selectedFolder?.name ?? "Library"}
 							</p>
 							<h2>{visiblePrompts.length} prompts</h2>
+							<p className="panel-copy">
+								Skim reusable instructions, sort them fast, and drop into the editor when needed.
+							</p>
 						</div>
 						<button
 							className="button button--primary"
@@ -774,6 +808,9 @@ function App() {
 						<div>
 							<p className="eyebrow">Editor</p>
 							<h2>{selectedPrompt?.title ?? "Select a prompt"}</h2>
+							<p className="panel-copy">
+								Write in Markdown, keep the structure lightweight, and preview the final result beside it.
+							</p>
 						</div>
 						<div className="editor-actions">
 							<button
@@ -789,6 +826,12 @@ function App() {
 					{selectedPrompt ? (
 						<div className="editor-layout">
 							<div className="editor-pane">
+								<div className="editor-ribbon">
+									<span className="editor-ribbon__label">Workbench</span>
+									<span className="editor-ribbon__value">
+										{draftBody.trim() ? `${draftBody.trim().split(/\s+/).length} words` : "Empty draft"}
+									</span>
+								</div>
 								<div className="editor-meta">
 									<div>
 										<span className="editor-meta__label">Folder</span>
