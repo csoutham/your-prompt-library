@@ -371,7 +371,7 @@ export class PromptStore {
 
 function normalizeName(value: string, fallback: string): string {
 	const trimmed = value.trim();
-	return trimmed.length > 0 ? trimmed : fallback;
+	return trimmed.length > 0 ? value : fallback;
 }
 
 function toPromptSummary(prompt: PromptRecord): PromptSummary {

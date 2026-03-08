@@ -71,6 +71,15 @@ describe("PromptStore", () => {
 		);
 	});
 
+	test("preserves spaces in prompt titles during saves", async () => {
+		const store = new PromptStore(rootDir);
+		const folder = (await store.listFolders())[0]!;
+		const prompt = await store.createPrompt(folder.id, "Draft");
+		const saved = await store.savePrompt(prompt.id, "My Prompt Title", "Body");
+
+		expect(saved.title).toBe("My Prompt Title");
+	});
+
 	test("deletes an empty folder", async () => {
 		const store = new PromptStore(rootDir);
 		const folder = await store.createFolder("Archive", null);
