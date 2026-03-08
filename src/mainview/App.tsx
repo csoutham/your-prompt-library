@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type {
@@ -57,6 +57,9 @@ type DialogState =
 
 function App() {
 	const [sortMode, setSortMode] = useState<"updated" | "title" | "created">("updated");
+	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+	const [isListCollapsed, setIsListCollapsed] = useState(false);
+	const [listWidth, setListWidth] = useState(330);
 	const [folders, setFolders] = useState<FolderRecord[]>([]);
 	const [promptSummaries, setPromptSummaries] = useState<PromptSummary[]>([]);
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -73,6 +76,7 @@ function App() {
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 	const dialogInputRef = useRef<HTMLInputElement | null>(null);
+	const isResizingRef = useRef(false);
 
 	useEffect(() => {
 		void loadInitialState();
@@ -166,6 +170,29 @@ function App() {
 			dialogInputRef.current?.select();
 		}
 	}, [dialog]);
+
+	useEffect(() => {
+		function handlePointerMove(event: MouseEvent) {
+			if (!isResizingRef.current || isListCollapsed) {
+				return;
+			}
+
+			const nextWidth = window.innerWidth - event.clientX - 24;
+			const clamped = Math.min(520, Math.max(260, nextWidth));
+			setListWidth(clamped);
+		}
+
+		function stopResizing() {
+			isResizingRef.current = false;
+		}
+
+		window.addEventListener("mousemove", handlePointerMove);
+		window.addEventListener("mouseup", stopResizing);
+		return () => {
+			window.removeEventListener("mousemove", handlePointerMove);
+			window.removeEventListener("mouseup", stopResizing);
+		};
+	}, [isListCollapsed]);
 
 	const visiblePrompts = useMemo(() => {
 		const base =
@@ -465,14 +492,29 @@ function App() {
 
 	return (
 		<div className="app-shell">
-			<div className="app-frame">
-				<aside className="sidebar">
+			<div
+				className="app-frame"
+				style={{
+					"--sidebar-width": isSidebarCollapsed ? "76px" : "270px",
+					"--list-width": isListCollapsed ? "76px" : `${listWidth}px`,
+				} as CSSProperties}
+			>
+				<aside className={`sidebar ${isSidebarCollapsed ? "sidebar--collapsed" : ""}`}>
 					<div className="sidebar__masthead">
 						<p className="eyebrow">Prompt Store</p>
 						<h1>Quietly local. Fast to reach.</h1>
 						<p className="sidebar__lede">
 							A lightweight library for prompts you want to keep close and searchable.
 						</p>
+					</div>
+
+					<div className="pane-toggle-bar">
+						<button
+							className="pane-toggle"
+							onClick={() => setIsSidebarCollapsed((current) => !current)}
+						>
+							{isSidebarCollapsed ? "Open Library" : "Collapse Library"}
+						</button>
 					</div>
 
 					<div className="shortcut-card">
@@ -595,7 +637,9 @@ function App() {
 					</div>
 				</aside>
 
-				<section className="prompt-list-panel">
+				<section
+					className={`prompt-list-panel ${isListCollapsed ? "prompt-list-panel--collapsed" : ""}`}
+				>
 					<div className="panel-header">
 						<div>
 							<p className="eyebrow">
@@ -609,6 +653,15 @@ function App() {
 							onClick={() => void createPrompt()}
 						>
 							New Prompt
+						</button>
+					</div>
+
+					<div className="pane-toggle-bar pane-toggle-bar--list">
+						<button
+							className="pane-toggle"
+							onClick={() => setIsListCollapsed((current) => !current)}
+						>
+							{isListCollapsed ? "Open Prompts" : "Collapse Prompts"}
 						</button>
 					</div>
 
@@ -706,6 +759,15 @@ function App() {
 						)}
 					</div>
 				</section>
+
+				<div
+					className={`pane-resizer ${isListCollapsed ? "pane-resizer--disabled" : ""}`}
+					onMouseDown={() => {
+						if (!isListCollapsed) {
+							isResizingRef.current = true;
+						}
+					}}
+				/>
 
 				<section className="editor-panel">
 					<div className="panel-header">
