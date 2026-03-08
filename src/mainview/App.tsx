@@ -541,10 +541,14 @@ function App() {
 
 					<div className="pane-toggle-bar">
 						<button
-							className="pane-toggle"
+							className="pane-toggle pane-toggle--icon"
+							aria-label={isSidebarCollapsed ? "Open library" : "Collapse library"}
+							title={isSidebarCollapsed ? "Open library" : "Collapse library"}
 							onClick={() => setIsSidebarCollapsed((current) => !current)}
 						>
-							{isSidebarCollapsed ? "Open Library" : "Collapse Library"}
+							<span className="button__icon" aria-hidden="true">
+								{isSidebarCollapsed ? "▸" : "◂"}
+							</span>
 						</button>
 					</div>
 
@@ -638,11 +642,18 @@ function App() {
 						>
 							Delete
 						</button>
-						<button className="button" onClick={() => void exportLibrary()}>
-							Export
+						<button
+							className="button button--icon"
+							onClick={() => void exportLibrary()}
+							aria-label="Export library"
+							title="Export library"
+						>
+							<span className="button__icon" aria-hidden="true">⤓</span>
 						</button>
 						<button
-							className="button"
+							className="button button--icon"
+							aria-label="Import library"
+							title="Import library"
 							onClick={() =>
 								openDialog({
 									type: "import-library",
@@ -653,7 +664,7 @@ function App() {
 								})
 							}
 						>
-							Import
+							<span className="button__icon" aria-hidden="true">⤒</span>
 						</button>
 					</div>
 
@@ -692,10 +703,14 @@ function App() {
 
 					<div className="pane-toggle-bar pane-toggle-bar--list">
 						<button
-							className="pane-toggle"
+							className="pane-toggle pane-toggle--icon"
+							aria-label={isListCollapsed ? "Open prompts" : "Collapse prompts"}
+							title={isListCollapsed ? "Open prompts" : "Collapse prompts"}
 							onClick={() => setIsListCollapsed((current) => !current)}
 						>
-							{isListCollapsed ? "Open Prompts" : "Collapse Prompts"}
+							<span className="button__icon" aria-hidden="true">
+								{isListCollapsed ? "▸" : "◂"}
+							</span>
 						</button>
 					</div>
 
@@ -714,8 +729,10 @@ function App() {
 							</select>
 						</label>
 						<button
-							className="button"
+							className="button button--icon"
 							disabled={!selectedPrompt}
+							aria-label="Rename prompt"
+							title="Rename prompt"
 							onClick={() =>
 								selectedPrompt &&
 								openDialog({
@@ -728,11 +745,13 @@ function App() {
 								})
 							}
 						>
-							Rename Prompt
+							<span className="button__icon" aria-hidden="true">✎</span>
 						</button>
 						<button
-							className="button button--danger"
+							className="button button--icon button--danger"
 							disabled={!selectedPrompt}
+							aria-label="Delete prompt"
+							title="Delete prompt"
 							onClick={() =>
 								selectedPrompt &&
 								openDialog({
@@ -744,7 +763,7 @@ function App() {
 								})
 							}
 						>
-							Delete Prompt
+							<span className="button__icon" aria-hidden="true">−</span>
 						</button>
 					</div>
 
@@ -814,11 +833,13 @@ function App() {
 						</div>
 						<div className="editor-actions">
 							<button
-								className="button"
+								className="button button--icon"
 								disabled={!selectedPrompt}
+								aria-label="Copy prompt"
+								title="Copy prompt"
 								onClick={() => void copyPrompt()}
 							>
-								Copy
+								<span className="button__icon" aria-hidden="true">⧉</span>
 							</button>
 						</div>
 					</div>

@@ -224,6 +224,12 @@ textarea {
 	cursor: pointer;
 }
 
+.pane-toggle--icon {
+	width: 48px;
+	padding-inline: 0;
+	justify-content: center;
+}
+
 .pane-toggle-bar--list {
 	margin-top: -6px;
 }
@@ -304,6 +310,19 @@ kbd {
 	color: var(--text);
 	cursor: pointer;
 	transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.button--icon {
+	min-width: 44px;
+	padding-inline: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.button__icon {
+	font-size: 1rem;
+	line-height: 1;
 }
 
 .button:hover:not(:disabled) {
