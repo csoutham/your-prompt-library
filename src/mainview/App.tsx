@@ -593,8 +593,10 @@ function App() {
 							New Folder
 						</button>
 						<button
-							className="button"
+							className="button button--icon"
 							disabled={!selectedFolder}
+							aria-label="Create subfolder"
+							title="Create subfolder"
 							onClick={() =>
 								selectedFolder &&
 								openDialog({
@@ -607,11 +609,13 @@ function App() {
 								})
 							}
 						>
-							New Subfolder
+							<span className="button__icon" aria-hidden="true">⊕</span>
 						</button>
 						<button
-							className="button"
+							className="button button--icon"
 							disabled={!selectedFolder}
+							aria-label="Rename folder"
+							title="Rename folder"
 							onClick={() =>
 								selectedFolder &&
 								openDialog({
@@ -624,11 +628,13 @@ function App() {
 								})
 							}
 						>
-							Rename
+							<span className="button__icon" aria-hidden="true">✎</span>
 						</button>
 						<button
-							className="button button--danger"
+							className="button button--icon button--danger"
 							disabled={!selectedFolder}
+							aria-label="Delete folder"
+							title="Delete folder"
 							onClick={() =>
 								selectedFolder &&
 								openDialog({
@@ -640,7 +646,7 @@ function App() {
 								})
 							}
 						>
-							Delete
+							<span className="button__icon" aria-hidden="true">−</span>
 						</button>
 						<button
 							className="button button--icon"
@@ -799,7 +805,10 @@ function App() {
 									}`}
 									onClick={() => void selectPrompt(prompt.id)}
 								>
-									<div className="prompt-card__title">{prompt.title}</div>
+									<div className="prompt-card__header">
+										<div className="prompt-card__title">{prompt.title}</div>
+										<span className="prompt-card__chevron" aria-hidden="true">↗</span>
+									</div>
 									<div className="prompt-card__excerpt">
 										{prompt.excerpt || "Empty prompt"}
 									</div>

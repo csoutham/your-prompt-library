@@ -273,6 +273,10 @@ kbd {
 	gap: 10px;
 }
 
+.sidebar__controls {
+	align-items: center;
+}
+
 .prompt-list-toolbar {
 	margin-top: -4px;
 	align-items: end;
@@ -535,6 +539,26 @@ kbd {
 .prompt-card__title {
 	font-size: 1rem;
 	font-weight: 700;
+}
+
+.prompt-card__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.prompt-card__chevron {
+	color: var(--muted);
+	font-size: 0.9rem;
+	opacity: 0.6;
+	transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.prompt-card:hover .prompt-card__chevron,
+.prompt-card--active .prompt-card__chevron {
+	opacity: 1;
+	transform: translate(2px, -2px);
 }
 
 .prompt-card__excerpt,
