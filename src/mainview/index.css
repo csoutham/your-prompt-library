@@ -318,15 +318,23 @@ kbd {
 
 .button--icon {
 	min-width: 44px;
+	min-height: 44px;
 	padding-inline: 0;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 }
 
-.button__icon {
-	font-size: 1rem;
-	line-height: 1;
+.button__icon-svg,
+.button__icon-inline {
+	flex: 0 0 auto;
+	display: block;
+	width: 18px;
+	height: 18px;
+}
+
+.button__icon-inline {
+	margin-right: 8px;
 }
 
 .button:hover:not(:disabled) {
@@ -550,7 +558,8 @@ kbd {
 
 .prompt-card__chevron {
 	color: var(--muted);
-	font-size: 0.9rem;
+	width: 16px;
+	height: 16px;
 	opacity: 0.6;
 	transition: transform 160ms ease, opacity 160ms ease;
 }

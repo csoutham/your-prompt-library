@@ -1,4 +1,16 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import {
+	ArrowBendUpRight,
+	ArrowElbowLeft,
+	CaretRight,
+	Copy,
+	DownloadSimple,
+	FilePlus,
+	FolderPlus,
+	PencilSimple,
+	Trash,
+	UploadSimple,
+} from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type {
@@ -546,9 +558,11 @@ function App() {
 							title={isSidebarCollapsed ? "Open library" : "Collapse library"}
 							onClick={() => setIsSidebarCollapsed((current) => !current)}
 						>
-							<span className="button__icon" aria-hidden="true">
-								{isSidebarCollapsed ? "▸" : "◂"}
-							</span>
+							{isSidebarCollapsed ? (
+								<CaretRight className="button__icon-svg" aria-hidden="true" weight="bold" />
+							) : (
+								<ArrowElbowLeft className="button__icon-svg" aria-hidden="true" weight="bold" />
+							)}
 						</button>
 					</div>
 
@@ -609,7 +623,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">⊕</span>
+							<FolderPlus className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 						<button
 							className="button button--icon"
@@ -628,7 +642,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">✎</span>
+							<PencilSimple className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 						<button
 							className="button button--icon button--danger"
@@ -646,7 +660,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">−</span>
+							<Trash className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 						<button
 							className="button button--icon"
@@ -654,7 +668,7 @@ function App() {
 							aria-label="Export library"
 							title="Export library"
 						>
-							<span className="button__icon" aria-hidden="true">⤓</span>
+							<DownloadSimple className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 						<button
 							className="button button--icon"
@@ -670,7 +684,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">⤒</span>
+							<UploadSimple className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 					</div>
 
@@ -703,6 +717,7 @@ function App() {
 							disabled={!selectedFolderId}
 							onClick={() => void createPrompt()}
 						>
+							<FilePlus className="button__icon-inline" aria-hidden="true" weight="duotone" />
 							New Prompt
 						</button>
 					</div>
@@ -714,9 +729,11 @@ function App() {
 							title={isListCollapsed ? "Open prompts" : "Collapse prompts"}
 							onClick={() => setIsListCollapsed((current) => !current)}
 						>
-							<span className="button__icon" aria-hidden="true">
-								{isListCollapsed ? "▸" : "◂"}
-							</span>
+							{isListCollapsed ? (
+								<CaretRight className="button__icon-svg" aria-hidden="true" weight="bold" />
+							) : (
+								<ArrowElbowLeft className="button__icon-svg" aria-hidden="true" weight="bold" />
+							)}
 						</button>
 					</div>
 
@@ -751,7 +768,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">✎</span>
+							<PencilSimple className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 						<button
 							className="button button--icon button--danger"
@@ -769,7 +786,7 @@ function App() {
 								})
 							}
 						>
-							<span className="button__icon" aria-hidden="true">−</span>
+							<Trash className="button__icon-svg" aria-hidden="true" weight="duotone" />
 						</button>
 					</div>
 
@@ -807,7 +824,11 @@ function App() {
 								>
 									<div className="prompt-card__header">
 										<div className="prompt-card__title">{prompt.title}</div>
-										<span className="prompt-card__chevron" aria-hidden="true">↗</span>
+										<ArrowBendUpRight
+											className="prompt-card__chevron"
+											aria-hidden="true"
+											weight="bold"
+										/>
 									</div>
 									<div className="prompt-card__excerpt">
 										{prompt.excerpt || "Empty prompt"}
@@ -848,7 +869,7 @@ function App() {
 								title="Copy prompt"
 								onClick={() => void copyPrompt()}
 							>
-								<span className="button__icon" aria-hidden="true">⧉</span>
+								<Copy className="button__icon-svg" aria-hidden="true" weight="duotone" />
 							</button>
 						</div>
 					</div>
