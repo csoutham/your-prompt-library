@@ -1,8 +1,6 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	ArrowBendUpRight,
-	ArrowElbowLeft,
-	CaretRight,
 	Copy,
 	DownloadSimple,
 	FilePlus,
@@ -11,8 +9,6 @@ import {
 	Trash,
 	UploadSimple,
 } from "@phosphor-icons/react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type {
 	FolderRecord,
 	PromptRecord,
@@ -69,9 +65,6 @@ type DialogState =
 
 function App() {
 	const [sortMode, setSortMode] = useState<"updated" | "title" | "created">("updated");
-	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-	const [isListCollapsed, setIsListCollapsed] = useState(false);
-	const [listWidth, setListWidth] = useState(330);
 	const [folders, setFolders] = useState<FolderRecord[]>([]);
 	const [promptSummaries, setPromptSummaries] = useState<PromptSummary[]>([]);
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -88,7 +81,6 @@ function App() {
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 	const dialogInputRef = useRef<HTMLInputElement | null>(null);
-	const isResizingRef = useRef(false);
 
 	useEffect(() => {
 		void loadInitialState();
@@ -182,29 +174,6 @@ function App() {
 			dialogInputRef.current?.select();
 		}
 	}, [dialog]);
-
-	useEffect(() => {
-		function handlePointerMove(event: MouseEvent) {
-			if (!isResizingRef.current || isListCollapsed) {
-				return;
-			}
-
-			const nextWidth = window.innerWidth - event.clientX - 24;
-			const clamped = Math.min(520, Math.max(260, nextWidth));
-			setListWidth(clamped);
-		}
-
-		function stopResizing() {
-			isResizingRef.current = false;
-		}
-
-		window.addEventListener("mousemove", handlePointerMove);
-		window.addEventListener("mouseup", stopResizing);
-		return () => {
-			window.removeEventListener("mousemove", handlePointerMove);
-			window.removeEventListener("mouseup", stopResizing);
-		};
-	}, [isListCollapsed]);
 
 	const visiblePrompts = useMemo(() => {
 		const base =
@@ -524,14 +493,8 @@ function App() {
 					</div>
 				</div>
 			</header>
-			<div
-				className="app-frame"
-				style={{
-					"--sidebar-width": isSidebarCollapsed ? "76px" : "270px",
-					"--list-width": isListCollapsed ? "76px" : `${listWidth}px`,
-				} as CSSProperties}
-			>
-				<aside className={`sidebar ${isSidebarCollapsed ? "sidebar--collapsed" : ""}`}>
+			<div className="app-frame">
+				<aside className="sidebar">
 					<div className="sidebar__masthead">
 						<p className="eyebrow">Prompt Store</p>
 						<h1>Quietly local. Fast to reach.</h1>
@@ -549,21 +512,6 @@ function App() {
 							<span>Visible prompts</span>
 							<strong>{visiblePrompts.length}</strong>
 						</div>
-					</div>
-
-					<div className="pane-toggle-bar">
-						<button
-							className="pane-toggle pane-toggle--icon"
-							aria-label={isSidebarCollapsed ? "Open library" : "Collapse library"}
-							title={isSidebarCollapsed ? "Open library" : "Collapse library"}
-							onClick={() => setIsSidebarCollapsed((current) => !current)}
-						>
-							{isSidebarCollapsed ? (
-								<CaretRight className="button__icon-svg" aria-hidden="true" weight="bold" />
-							) : (
-								<ArrowElbowLeft className="button__icon-svg" aria-hidden="true" weight="bold" />
-							)}
-						</button>
 					</div>
 
 					<div className="shortcut-card">
@@ -699,9 +647,7 @@ function App() {
 					</div>
 				</aside>
 
-				<section
-					className={`prompt-list-panel ${isListCollapsed ? "prompt-list-panel--collapsed" : ""}`}
-				>
+				<section className="prompt-list-panel">
 					<div className="panel-header">
 						<div>
 							<p className="eyebrow">
@@ -719,21 +665,6 @@ function App() {
 						>
 							<FilePlus className="button__icon-inline" aria-hidden="true" weight="duotone" />
 							New Prompt
-						</button>
-					</div>
-
-					<div className="pane-toggle-bar pane-toggle-bar--list">
-						<button
-							className="pane-toggle pane-toggle--icon"
-							aria-label={isListCollapsed ? "Open prompts" : "Collapse prompts"}
-							title={isListCollapsed ? "Open prompts" : "Collapse prompts"}
-							onClick={() => setIsListCollapsed((current) => !current)}
-						>
-							{isListCollapsed ? (
-								<CaretRight className="button__icon-svg" aria-hidden="true" weight="bold" />
-							) : (
-								<ArrowElbowLeft className="button__icon-svg" aria-hidden="true" weight="bold" />
-							)}
 						</button>
 					</div>
 
@@ -843,15 +774,6 @@ function App() {
 					</div>
 				</section>
 
-				<div
-					className={`pane-resizer ${isListCollapsed ? "pane-resizer--disabled" : ""}`}
-					onMouseDown={() => {
-						if (!isListCollapsed) {
-							isResizingRef.current = true;
-						}
-					}}
-				/>
-
 				<section className="editor-panel">
 					<div className="panel-header">
 						<div>
@@ -875,53 +797,42 @@ function App() {
 					</div>
 
 					{selectedPrompt ? (
-						<div className="editor-layout">
-							<div className="editor-pane">
-								<div className="editor-ribbon">
-									<span className="editor-ribbon__label">Workbench</span>
-									<span className="editor-ribbon__value">
-										{draftBody.trim() ? `${draftBody.trim().split(/\s+/).length} words` : "Empty draft"}
-									</span>
-								</div>
-								<div className="editor-meta">
-									<div>
-										<span className="editor-meta__label">Folder</span>
-										<strong>{folderNameFor(selectedPrompt.folderId, folders)}</strong>
-									</div>
-									<div>
-										<span className="editor-meta__label">Created</span>
-										<strong>{formatDateTime(selectedPrompt.createdAt)}</strong>
-									</div>
-									<div>
-										<span className="editor-meta__label">Updated</span>
-										<strong>{formatDateTime(selectedPrompt.updatedAt)}</strong>
-									</div>
-								</div>
-								<label className="editor-field">
-									<span>Title</span>
-									<input
-										value={draftTitle}
-										onChange={(event) => setDraftTitle(event.target.value)}
-									/>
-								</label>
-								<label className="editor-field editor-field--body">
-									<span>Markdown</span>
-									<textarea
-										value={draftBody}
-										onChange={(event) => setDraftBody(event.target.value)}
-										placeholder="# Prompt title&#10;&#10;Write the reusable instructions here."
-									/>
-								</label>
+						<div className="editor-pane">
+							<div className="editor-ribbon">
+								<span className="editor-ribbon__label">Workbench</span>
+								<span className="editor-ribbon__value">
+									{draftBody.trim() ? `${draftBody.trim().split(/\s+/).length} words` : "Empty draft"}
+								</span>
 							</div>
-
-							<div className="preview-pane">
-								<div className="preview-pane__header">Preview</div>
-								<div className="markdown-preview">
-									<ReactMarkdown remarkPlugins={[remarkGfm]}>
-										{draftBody.trim() ? draftBody : "_Nothing to preview yet._"}
-									</ReactMarkdown>
+							<div className="editor-meta">
+								<div>
+									<span className="editor-meta__label">Folder</span>
+									<strong>{folderNameFor(selectedPrompt.folderId, folders)}</strong>
+								</div>
+								<div>
+									<span className="editor-meta__label">Created</span>
+									<strong>{formatDateTime(selectedPrompt.createdAt)}</strong>
+								</div>
+								<div>
+									<span className="editor-meta__label">Updated</span>
+									<strong>{formatDateTime(selectedPrompt.updatedAt)}</strong>
 								</div>
 							</div>
+							<label className="editor-field">
+								<span>Title</span>
+								<input
+									value={draftTitle}
+									onChange={(event) => setDraftTitle(event.target.value)}
+								/>
+							</label>
+							<label className="editor-field editor-field--body">
+								<span>Markdown</span>
+								<textarea
+									value={draftBody}
+									onChange={(event) => setDraftBody(event.target.value)}
+									placeholder="# Prompt title&#10;&#10;Write the reusable instructions here."
+								/>
+							</label>
 						</div>
 					) : (
 						<div className="empty-state empty-state--editor">

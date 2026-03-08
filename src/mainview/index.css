@@ -112,7 +112,7 @@ textarea {
 
 .app-frame {
 	display: grid;
-	grid-template-columns: var(--sidebar-width, 270px) var(--list-width, 330px) 10px minmax(0, 1fr);
+	grid-template-columns: 280px 340px minmax(0, 1fr);
 	min-height: calc(100vh - 44px);
 	border: 1px solid rgba(94, 66, 45, 0.1);
 	border-radius: 28px;
@@ -135,26 +135,6 @@ textarea {
 	background:
 		linear-gradient(180deg, rgba(247, 239, 229, 0.98) 0%, rgba(239, 228, 212, 0.88) 100%);
 	border-right: 1px solid var(--line);
-	transition: padding 160ms ease, gap 160ms ease;
-}
-
-.sidebar--collapsed {
-	padding-inline: 14px;
-}
-
-.sidebar--collapsed .sidebar__masthead h1,
-.sidebar--collapsed .sidebar__lede,
-.sidebar--collapsed .shortcut-card,
-.sidebar--collapsed .sidebar__controls,
-.prompt-list-panel--collapsed .prompt-list-toolbar,
-.prompt-list-panel--collapsed .search-field,
-.prompt-list-panel--collapsed .prompt-list {
-	display: none;
-}
-
-.sidebar--collapsed .pane-toggle-bar,
-.prompt-list-panel--collapsed .pane-toggle-bar {
-	margin-top: 0;
 }
 
 .sidebar__masthead h1,
@@ -207,31 +187,6 @@ textarea {
 
 .sidebar-stat strong {
 	font-size: 0.95rem;
-}
-
-.pane-toggle-bar {
-	display: flex;
-}
-
-.pane-toggle {
-	width: 100%;
-	border: 1px dashed rgba(98, 72, 46, 0.16);
-	border-radius: 14px;
-	padding: 10px 12px;
-	background: rgba(255, 251, 245, 0.54);
-	color: var(--muted);
-	text-align: left;
-	cursor: pointer;
-}
-
-.pane-toggle--icon {
-	width: 48px;
-	padding-inline: 0;
-	justify-content: center;
-}
-
-.pane-toggle-bar--list {
-	margin-top: -6px;
 }
 
 .shortcut-card {
@@ -436,41 +391,6 @@ kbd {
 	border-right: 1px solid var(--line);
 }
 
-.prompt-list-panel--collapsed {
-	padding-inline: 14px;
-}
-
-.prompt-list-panel--collapsed .panel-header {
-	flex-direction: column;
-	align-items: stretch;
-}
-
-.prompt-list-panel--collapsed .panel-header h2 {
-	font-size: 1rem;
-}
-
-.pane-resizer {
-	cursor: col-resize;
-	background:
-		linear-gradient(180deg, transparent 0%, rgba(98, 72, 46, 0.12) 24%, rgba(98, 72, 46, 0.12) 76%, transparent 100%);
-}
-
-.pane-resizer::after {
-	content: "";
-	display: block;
-	width: 4px;
-	height: 64px;
-	margin: 0 auto;
-	margin-top: calc(50vh - 90px);
-	border-radius: 999px;
-	background: rgba(98, 72, 46, 0.18);
-}
-
-.pane-resizer--disabled {
-	cursor: default;
-	opacity: 0.35;
-}
-
 .panel-header {
 	display: flex;
 	align-items: flex-start;
@@ -493,8 +413,7 @@ kbd {
 }
 
 .search-field span,
-.editor-field span,
-.preview-pane__header {
+.editor-field span {
 	font-size: 0.72rem;
 	font-weight: 700;
 	letter-spacing: 0.18em;
@@ -595,16 +514,7 @@ kbd {
 		linear-gradient(180deg, rgba(255, 252, 246, 0.96) 0%, rgba(243, 235, 225, 0.82) 100%);
 }
 
-.editor-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(280px, 36%);
-	gap: 18px;
-	min-height: 0;
-	flex: 1;
-}
-
 .editor-pane,
-.preview-pane,
 .empty-state {
 	border: 1px solid rgba(98, 72, 46, 0.12);
 	border-radius: 24px;
@@ -616,6 +526,8 @@ kbd {
 	flex-direction: column;
 	gap: 14px;
 	padding: 18px;
+	flex: 1;
+	min-height: 0;
 }
 
 .editor-ribbon {
@@ -672,45 +584,6 @@ kbd {
 
 .editor-field--body {
 	flex: 1;
-}
-
-.preview-pane {
-	display: flex;
-	flex-direction: column;
-	padding: 18px;
-	overflow: auto;
-	background:
-		linear-gradient(180deg, rgba(250, 244, 235, 0.92), rgba(245, 238, 229, 0.84));
-}
-
-.markdown-preview {
-	line-height: 1.65;
-	color: var(--text);
-}
-
-.markdown-preview h1,
-.markdown-preview h2,
-.markdown-preview h3 {
-	letter-spacing: -0.04em;
-}
-
-.markdown-preview pre,
-.markdown-preview code {
-	font-family: "SF Mono", "Menlo", monospace;
-}
-
-.markdown-preview pre {
-	overflow: auto;
-	border-radius: 16px;
-	padding: 14px;
-	background: #f0e3d4;
-}
-
-.markdown-preview blockquote {
-	margin-left: 0;
-	padding-left: 14px;
-	border-left: 3px solid rgba(159, 84, 44, 0.35);
-	color: var(--muted);
 }
 
 .empty-state {
@@ -779,11 +652,7 @@ kbd {
 
 @media (max-width: 1120px) {
 	.app-frame {
-		grid-template-columns: var(--sidebar-width, 250px) var(--list-width, 300px) 10px minmax(0, 1fr);
-	}
-
-	.editor-layout {
-		grid-template-columns: 1fr;
+		grid-template-columns: 250px 300px minmax(0, 1fr);
 	}
 
 	.editor-meta {
@@ -809,10 +678,6 @@ kbd {
 	.prompt-list-panel {
 		border-right: 0;
 		border-bottom: 1px solid var(--line);
-	}
-
-	.pane-resizer {
-		display: none;
 	}
 
 	.status-bar,
