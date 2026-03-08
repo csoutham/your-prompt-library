@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type {
@@ -70,6 +70,8 @@ function App() {
 	const [dialog, setDialog] = useState<DialogState>(null);
 	const [dialogValue, setDialogValue] = useState("");
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
+	const searchInputRef = useRef<HTMLInputElement | null>(null);
+	const dialogInputRef = useRef<HTMLInputElement | null>(null);
 
 	useEffect(() => {
 		void loadInitialState();
@@ -101,6 +103,68 @@ function App() {
 
 		return () => window.clearTimeout(timeout);
 	}, [draftBody, draftTitle, selectedPrompt]);
+
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			const meta = event.metaKey || event.ctrlKey;
+			const target = event.target as HTMLElement | null;
+			const isEditableTarget =
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target?.isContentEditable === true;
+
+			if (event.key === "Escape" && dialog) {
+				event.preventDefault();
+				closeDialog();
+				return;
+			}
+
+			if (!meta) {
+				return;
+			}
+
+			if (event.key.toLowerCase() === "f") {
+				event.preventDefault();
+				searchInputRef.current?.focus();
+				searchInputRef.current?.select();
+				return;
+			}
+
+			if (event.key.toLowerCase() === "s" && selectedPrompt) {
+				event.preventDefault();
+				void saveCurrentPrompt();
+				return;
+			}
+
+			if (event.key.toLowerCase() === "n" && event.shiftKey) {
+				event.preventDefault();
+				openDialog({
+					type: "create-folder",
+					title: "New folder",
+					description: "Create a top-level folder for a new group of prompts.",
+					submitLabel: "Create Folder",
+					initialValue: "New Folder",
+					parentId: null,
+				});
+				return;
+			}
+
+			if (event.key.toLowerCase() === "n" && !isEditableTarget && selectedFolderId) {
+				event.preventDefault();
+				void createPrompt();
+			}
+		}
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [dialog, selectedFolderId, selectedPrompt, draftTitle, draftBody]);
+
+	useEffect(() => {
+		if (dialog && "initialValue" in dialog) {
+			dialogInputRef.current?.focus();
+			dialogInputRef.current?.select();
+		}
+	}, [dialog]);
 
 	const visiblePrompts = useMemo(() => {
 		if (searchQuery.trim()) {
@@ -403,6 +467,30 @@ function App() {
 						</p>
 					</div>
 
+					<div className="shortcut-card">
+						<p className="eyebrow">Shortcuts</p>
+						<div className="shortcut-card__row">
+							<span>Search</span>
+							<kbd>Cmd F</kbd>
+						</div>
+						<div className="shortcut-card__row">
+							<span>New prompt</span>
+							<kbd>Cmd N</kbd>
+						</div>
+						<div className="shortcut-card__row">
+							<span>New folder</span>
+							<kbd>Cmd Shift N</kbd>
+						</div>
+						<div className="shortcut-card__row">
+							<span>Save</span>
+							<kbd>Cmd S</kbd>
+						</div>
+						<div className="shortcut-card__row">
+							<span>Dismiss dialog</span>
+							<kbd>Esc</kbd>
+						</div>
+					</div>
+
 					<div className="sidebar__controls">
 						<button
 							className="button button--primary"
@@ -549,6 +637,7 @@ function App() {
 					<label className="search-field">
 						<span>Search</span>
 						<input
+							ref={searchInputRef}
 							value={searchQuery}
 							onChange={(event) => void handleSearchChange(event.target.value)}
 							placeholder="Search titles and Markdown"
@@ -689,7 +778,7 @@ function App() {
 							<label className="editor-field">
 								<span>Name</span>
 								<input
-									autoFocus
+									ref={dialogInputRef}
 									value={dialogValue}
 									onChange={(event) => setDialogValue(event.target.value)}
 									onKeyDown={(event) => {
