@@ -60,7 +60,7 @@ const mainWindow = new BrowserWindow({
 	title: "Prompt Store",
 	url,
 	rpc,
-	titleBarStyle: "hiddenInset",
+	titleBarStyle: "default",
 	frame: {
 		width: 1440,
 		height: 920,
