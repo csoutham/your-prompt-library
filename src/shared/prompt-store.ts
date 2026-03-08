@@ -1,0 +1,93 @@
+export type FolderRecord = {
+	id: string;
+	name: string;
+	parentId: string | null;
+	createdAt: string;
+	updatedAt: string;
+};
+
+export type PromptRecord = {
+	id: string;
+	title: string;
+	folderId: string;
+	bodyMarkdown: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+export type PromptSummary = Omit<PromptRecord, "bodyMarkdown"> & {
+	excerpt: string;
+};
+
+export type BootstrapPayload = {
+	folders: FolderRecord[];
+	prompts: PromptSummary[];
+};
+
+export type PromptStoreRpcSchema = {
+	bun: {
+		requests: {
+			bootstrap: {
+				params: undefined;
+				response: BootstrapPayload;
+			};
+			listFolders: {
+				params: undefined;
+				response: FolderRecord[];
+			};
+			listPrompts: {
+				params: { folderId: string };
+				response: PromptSummary[];
+			};
+			getPrompt: {
+				params: { promptId: string };
+				response: PromptRecord | null;
+			};
+			createFolder: {
+				params: { name: string; parentId: string | null };
+				response: FolderRecord;
+			};
+			renameFolder: {
+				params: { folderId: string; name: string };
+				response: FolderRecord;
+			};
+			deleteFolder: {
+				params: { folderId: string };
+				response: { deleted: true };
+			};
+			createPrompt: {
+				params: { folderId: string; title?: string };
+				response: PromptRecord;
+			};
+			savePrompt: {
+				params: {
+					promptId: string;
+					title: string;
+					bodyMarkdown: string;
+				};
+				response: PromptRecord;
+			};
+			renamePrompt: {
+				params: { promptId: string; title: string };
+				response: PromptRecord;
+			};
+			deletePrompt: {
+				params: { promptId: string };
+				response: { deleted: true };
+			};
+			searchPrompts: {
+				params: { query: string };
+				response: PromptSummary[];
+			};
+			copyPrompt: {
+				params: { promptId: string };
+				response: { copied: true };
+			};
+		};
+		messages: {};
+	};
+	webview: {
+		requests: {};
+		messages: {};
+	};
+};
