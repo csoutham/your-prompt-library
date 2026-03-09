@@ -1,4 +1,4 @@
-import { BrowserWindow, Utils, Updater } from "electrobun/bun";
+import { BrowserWindow, Tray, Utils, Updater, type MenuItemConfig } from "electrobun/bun";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PromptStore, PromptStoreError } from "./promptStore";
@@ -28,33 +28,129 @@ async function getMainViewUrl(): Promise<string> {
 // Create the main application window
 const url = await getMainViewUrl();
 const store = new PromptStore(join(Utils.paths.userData, "library"));
+const tray = new Tray({
+	title: "YPL",
+});
+let mainWindow: BrowserWindow<any>;
+
+async function copyPromptToClipboard(promptId: string) {
+	const prompt = await store.getPrompt(promptId);
+	if (!prompt) {
+		throw new PromptStoreError("Prompt not found.");
+	}
+	Utils.clipboardWriteText(prompt.bodyMarkdown);
+}
+
+async function refreshTrayMenu() {
+	const { prompts } = await store.bootstrap();
+	const recentPrompts = prompts
+		.slice()
+		.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+		.slice(0, 8);
+
+	const recentPromptItems: MenuItemConfig[] =
+		recentPrompts.length > 0
+			? recentPrompts.map((prompt) => ({
+					type: "normal",
+					label: prompt.title,
+					tooltip: "Copy prompt to clipboard",
+					action: "copy-prompt",
+					data: { promptId: prompt.id },
+				}))
+			: [
+					{
+						type: "normal",
+						label: "No prompts yet",
+						enabled: false,
+					},
+				];
+
+	tray.setMenu([
+		{
+			type: "normal",
+			label: "Recent Prompts",
+			enabled: false,
+		},
+		...recentPromptItems,
+		{ type: "divider" },
+		{
+			type: "normal",
+			label: "Open Your Prompt Library",
+			action: "open-main-window",
+		},
+		{
+			type: "normal",
+			label: "Quit",
+			action: "quit-app",
+		},
+	]);
+}
+
+tray.on("tray-clicked", async (event) => {
+	const trayEvent = event as { action?: string; data?: { promptId?: string } };
+	if (trayEvent.action === "copy-prompt" && trayEvent.data?.promptId) {
+		await copyPromptToClipboard(trayEvent.data.promptId);
+		return;
+	}
+
+	if (trayEvent.action === "open-main-window") {
+		mainWindow.show();
+		return;
+	}
+
+	if (trayEvent.action === "quit-app") {
+		process.exit(0);
+	}
+});
+
 const rpc = createBunRpc({
 	bootstrap: async () => store.bootstrap(),
 	listFolders: async () => store.listFolders(),
 	listPrompts: async ({ folderId }) => store.listPrompts(folderId),
 	getPrompt: async ({ promptId }) => store.getPrompt(promptId),
-	createFolder: async ({ name, parentId }) => store.createFolder(name, parentId),
-	renameFolder: async ({ folderId, name }) => store.renameFolder(folderId, name),
+	createFolder: async ({ name, parentId }) => {
+		const folder = await store.createFolder(name, parentId);
+		await refreshTrayMenu();
+		return folder;
+	},
+	renameFolder: async ({ folderId, name }) => {
+		const folder = await store.renameFolder(folderId, name);
+		await refreshTrayMenu();
+		return folder;
+	},
 	deleteFolder: async ({ folderId }) => {
 		await store.deleteFolder(folderId);
+		await refreshTrayMenu();
 		return { deleted: true as const };
 	},
-	createPrompt: async ({ folderId, title }) => store.createPrompt(folderId, title),
-	savePrompt: async ({ promptId, title, bodyMarkdown }) =>
-		store.savePrompt(promptId, title, bodyMarkdown),
-	movePrompt: async ({ promptId, folderId }) => store.movePrompt(promptId, folderId),
-	renamePrompt: async ({ promptId, title }) => store.renamePrompt(promptId, title),
+	createPrompt: async ({ folderId, title }) => {
+		const prompt = await store.createPrompt(folderId, title);
+		await refreshTrayMenu();
+		return prompt;
+	},
+	savePrompt: async ({ promptId, title, bodyMarkdown }) => {
+		const prompt = await store.savePrompt(promptId, title, bodyMarkdown);
+		await refreshTrayMenu();
+		return prompt;
+	},
+	movePrompt: async ({ promptId, folderId }) => {
+		const prompt = await store.movePrompt(promptId, folderId);
+		await refreshTrayMenu();
+		return prompt;
+	},
+	renamePrompt: async ({ promptId, title }) => {
+		const prompt = await store.renamePrompt(promptId, title);
+		await refreshTrayMenu();
+		return prompt;
+	},
 	deletePrompt: async ({ promptId }) => {
 		await store.deletePrompt(promptId);
+		await refreshTrayMenu();
 		return { deleted: true as const };
 	},
 	searchPrompts: async ({ query }) => store.searchPrompts(query),
 	copyPrompt: async ({ promptId }) => {
-		const prompt = await store.getPrompt(promptId);
-		if (!prompt) {
-			throw new PromptStoreError("Prompt not found.");
-		}
-		Utils.clipboardWriteText(prompt.bodyMarkdown);
+		await copyPromptToClipboard(promptId);
 		return { copied: true as const };
 	},
 	exportLibrary: async () => {
@@ -89,11 +185,12 @@ const rpc = createBunRpc({
 		const raw = await Bun.file(filePath).text();
 		const snapshot = JSON.parse(raw) as PromptLibrarySnapshot;
 		await store.importSnapshot(snapshot);
+		await refreshTrayMenu();
 		return { imported: true as const };
 	},
 });
 
-const mainWindow = new BrowserWindow({
+mainWindow = new BrowserWindow({
 	title: "Your prompt library",
 	url,
 	rpc,
@@ -105,6 +202,8 @@ const mainWindow = new BrowserWindow({
 		y: 200,
 	},
 });
+
+await refreshTrayMenu();
 
 mainWindow.webview.on("did-navigate", async () => {
 	const folders = await store.listFolders();
