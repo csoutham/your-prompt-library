@@ -1,9 +1,20 @@
-import { BrowserWindow, Tray, Utils, Updater, type MenuItemConfig } from "electrobun/bun";
+import {
+	ApplicationMenu,
+	BrowserWindow,
+	Tray,
+	Utils,
+	Updater,
+	type MenuItemConfig,
+} from "electrobun/bun";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PromptStore, PromptStoreError } from "./promptStore";
 import { createBunRpc } from "./rpc";
-import type { PromptLibrarySnapshot } from "../shared/prompt-store";
+import type {
+	FolderRecord,
+	PromptLibrarySnapshot,
+	PromptSummary,
+} from "../shared/prompt-store";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -33,6 +44,31 @@ const tray = new Tray({
 });
 let mainWindow: BrowserWindow<any>;
 
+ApplicationMenu.setApplicationMenu([
+	{
+		label: "Your Prompt Library",
+		submenu: [{ role: "about" }, { type: "divider" }, { role: "quit" }],
+	},
+	{
+		label: "Edit",
+		submenu: [
+			{ role: "undo" },
+			{ role: "redo" },
+			{ type: "divider" },
+			{ role: "cut" },
+			{ role: "copy" },
+			{ role: "paste" },
+			{ role: "pasteAndMatchStyle" },
+			{ role: "delete" },
+			{ role: "selectAll" },
+		],
+	},
+	{
+		label: "Window",
+		submenu: [{ role: "minimize" }, { role: "zoom" }],
+	},
+]);
+
 async function copyPromptToClipboard(promptId: string) {
 	const prompt = await store.getPrompt(promptId);
 	if (!prompt) {
@@ -42,36 +78,15 @@ async function copyPromptToClipboard(promptId: string) {
 }
 
 async function refreshTrayMenu() {
-	const { prompts } = await store.bootstrap();
-	const recentPrompts = prompts
-		.slice()
-		.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-		.slice(0, 8);
-
-	const recentPromptItems: MenuItemConfig[] =
-		recentPrompts.length > 0
-			? recentPrompts.map((prompt) => ({
-					type: "normal",
-					label: prompt.title,
-					tooltip: "Copy prompt to clipboard",
-					action: "copy-prompt",
-					data: { promptId: prompt.id },
-				}))
-			: [
-					{
-						type: "normal",
-						label: "No prompts yet",
-						enabled: false,
-					},
-				];
+	const { folders, prompts } = await store.bootstrap();
 
 	tray.setMenu([
 		{
 			type: "normal",
-			label: "Recent Prompts",
+			label: "Prompt Library",
 			enabled: false,
 		},
-		...recentPromptItems,
+		...buildFolderMenuItems(folders, prompts),
 		{ type: "divider" },
 		{
 			type: "normal",
@@ -84,6 +99,81 @@ async function refreshTrayMenu() {
 			action: "quit-app",
 		},
 	]);
+}
+
+function buildFolderMenuItems(
+	folders: FolderRecord[],
+	prompts: PromptSummary[],
+): MenuItemConfig[] {
+	const topLevelFolders = folders
+		.filter((folder) => folder.parentId === null)
+		.sort(sortFoldersByName);
+
+	if (topLevelFolders.length === 0) {
+		return [
+			{
+				type: "normal",
+				label: "No prompts yet",
+				enabled: false,
+			},
+		];
+	}
+
+	return topLevelFolders.map((folder) => ({
+		type: "normal",
+		label: folder.name,
+		submenu: buildPromptSubmenu(folder, folders, prompts),
+	}));
+}
+
+function buildPromptSubmenu(
+	folder: FolderRecord,
+	folders: FolderRecord[],
+	prompts: PromptSummary[],
+): MenuItemConfig[] {
+	const directPrompts = prompts
+		.filter((prompt) => prompt.folderId === folder.id)
+		.sort(sortPromptTitles)
+		.map(toPromptMenuItem);
+	const childFolders = folders
+		.filter((candidate) => candidate.parentId === folder.id)
+		.sort(sortFoldersByName)
+		.map((childFolder) => ({
+			type: "normal" as const,
+			label: childFolder.name,
+			submenu: buildPromptSubmenu(childFolder, folders, prompts),
+		}));
+
+	const items = [...childFolders, ...directPrompts];
+	if (items.length > 0) {
+		return items;
+	}
+
+	return [
+		{
+			type: "normal",
+			label: "No prompts",
+			enabled: false,
+		},
+	];
+}
+
+function toPromptMenuItem(prompt: PromptSummary): MenuItemConfig {
+	return {
+		type: "normal",
+		label: prompt.title,
+		tooltip: "Copy prompt to clipboard",
+		action: "copy-prompt",
+		data: { promptId: prompt.id },
+	};
+}
+
+function sortFoldersByName(left: FolderRecord, right: FolderRecord) {
+	return left.name.localeCompare(right.name);
+}
+
+function sortPromptTitles(left: PromptSummary, right: PromptSummary) {
+	return left.title.localeCompare(right.title);
 }
 
 tray.on("tray-clicked", async (event) => {
