@@ -83,15 +83,6 @@ select {
 	letter-spacing: -0.06em;
 }
 
-.app-topbar__drag {
-	flex: 1;
-	min-width: 120px;
-	min-height: 34px;
-	border-radius: 999px;
-	background: linear-gradient(180deg, rgba(255, 250, 244, 0.28), rgba(255, 250, 244, 0.08));
-	border: 1px solid rgba(83, 60, 41, 0.08);
-}
-
 .app-topbar__meta {
 	display: flex;
 	align-items: center;
@@ -714,10 +705,6 @@ kbd {
 		flex-direction: column;
 		align-items: stretch;
 		padding-left: 4px;
-	}
-
-	.app-topbar__drag {
-		display: none;
 	}
 
 	.app-frame {

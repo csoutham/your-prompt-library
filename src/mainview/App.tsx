@@ -520,7 +520,6 @@ function App() {
 				<div className="app-topbar__brand">
 					<h1>Your prompt library</h1>
 				</div>
-				<div className="app-topbar__drag" aria-hidden="true" />
 				<div className="app-topbar__meta">
 					<button
 						className="button button--icon"
