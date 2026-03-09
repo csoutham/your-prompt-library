@@ -16,17 +16,17 @@ This project is prepared for a macOS TestFlight submission path built from Elect
 - `APP_BUNDLE_ID`
   Example: `com.cjsoutham.promptlibrary`
 - `ELECTROBUN_DEVELOPER_ID`
-  For this team, likely:
-  `Apple Distribution: Chris Southam (EUGLUJ6T59)`
+  For this team:
+  `3rd Party Mac Developer Application: Chris Southam (EUGLUJ6T59)`
 - `APPLE_INSTALLER_IDENTITY`
-  For this team, likely:
+  For this team:
   `3rd Party Mac Developer Installer: Chris Southam (EUGLUJ6T59)`
 
 ## Build the upload package
 
 ```bash
 export APP_BUNDLE_ID="com.cjsoutham.promptlibrary"
-export ELECTROBUN_DEVELOPER_ID="Apple Distribution: Chris Southam (EUGLUJ6T59)"
+export ELECTROBUN_DEVELOPER_ID="3rd Party Mac Developer Application: Chris Southam (EUGLUJ6T59)"
 export APPLE_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Chris Southam (EUGLUJ6T59)"
 
 bun install
@@ -52,4 +52,5 @@ The resulting upload artifact is:
 - The default bundle identifier in config is `com.cjsoutham.promptlibrary`. Override `APP_BUNDLE_ID` only if you need a different App Store Connect identifier.
 - The Team ID for this release path is `EUGLUJ6T59`.
 - The app uses the macOS app sandbox in TestFlight mode and allows read/write access only to user-selected files outside its app container.
+- The packaging script automatically builds through a temporary symlink path when the project folder contains spaces, which works around an Electrobun signing bug with unquoted entitlement paths.
 - If you need App Store-specific metadata next, the remaining work is App Store Connect setup rather than code changes.
