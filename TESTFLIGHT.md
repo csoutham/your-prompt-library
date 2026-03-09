@@ -14,7 +14,7 @@ This project is prepared for a macOS TestFlight submission path built from Elect
 ## Required environment variables
 
 - `APP_BUNDLE_ID`
-  Example: `com.yourcompany.yourpromptlibrary`
+  Example: `com.cjsoutham.promptlibrary`
 - `ELECTROBUN_DEVELOPER_ID`
   Use your Apple Distribution signing identity name
 - `APPLE_INSTALLER_IDENTITY`
@@ -23,7 +23,7 @@ This project is prepared for a macOS TestFlight submission path built from Elect
 ## Build the upload package
 
 ```bash
-export APP_BUNDLE_ID="com.yourcompany.yourpromptlibrary"
+export APP_BUNDLE_ID="com.cjsoutham.promptlibrary"
 export ELECTROBUN_DEVELOPER_ID="Apple Distribution: Your Company, Inc. (TEAMID)"
 export APPLE_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Your Company, Inc. (TEAMID)"
 
@@ -47,6 +47,6 @@ The resulting upload artifact is:
 
 ## Notes
 
-- The default development bundle identifier remains a local fallback only. Use `APP_BUNDLE_ID` for any real TestFlight build.
+- The default bundle identifier in config is `com.cjsoutham.promptlibrary`. Override `APP_BUNDLE_ID` only if you need a different App Store Connect identifier.
 - The app uses the macOS app sandbox in TestFlight mode and allows read/write access only to user-selected files outside its app container.
 - If you need App Store-specific metadata next, the remaining work is App Store Connect setup rather than code changes.
