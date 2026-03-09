@@ -7,7 +7,7 @@ export default {
 	app: {
 		name: "Your Prompt Library",
 		identifier: appIdentifier,
-		version: "0.8.3",
+		version: "0.8.4",
 	},
 	build: {
 		// Vite builds to dist/, we copy from there
