@@ -5,6 +5,7 @@ import {
 	Check,
 	Copy,
 	DownloadSimple,
+	FolderPlus,
 	FolderSimpleDashed,
 	PencilSimple,
 	Keyboard,
@@ -515,12 +516,12 @@ function App() {
 	}
 
 	return (
-		<div className="app-shell">
+			<div className="app-shell">
 			<div className="app-live-region" aria-live="polite">
 				{errorMessage ?? (isSaving ? "Autosaving…" : statusMessage)}
 			</div>
 			<header className="app-topbar">
-				<div className="app-topbar__brand">
+				<div className="app-topbar__brand electrobun-webkit-app-region-drag">
 					<h1>Your prompt library</h1>
 				</div>
 				<div className="app-topbar__meta">
@@ -957,7 +958,7 @@ function renderFolderTree(
 								title="Create subfolder"
 								onClick={() => onCreateChild(folder)}
 							>
-								<FolderSimpleDashed className="button__icon-svg" aria-hidden="true" />
+								<FolderPlus className="button__icon-svg" aria-hidden="true" />
 							</button>
 						) : null}
 						<button
