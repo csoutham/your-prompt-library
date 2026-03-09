@@ -36,6 +36,11 @@ button,
 input,
 textarea {
 	font: inherit;
+	-webkit-app-region: no-drag;
+}
+
+select {
+	-webkit-app-region: no-drag;
 }
 
 #root {
@@ -66,7 +71,8 @@ textarea {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	padding: 2px 4px 0;
+	padding: 10px 4px 0 84px;
+	-webkit-app-region: drag;
 }
 
 .app-topbar__brand h1 {
@@ -81,6 +87,7 @@ textarea {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	-webkit-app-region: no-drag;
 }
 
 .app-frame {
@@ -704,6 +711,7 @@ kbd {
 	.app-topbar {
 		flex-direction: column;
 		align-items: stretch;
+		padding-left: 4px;
 	}
 
 	.app-frame {

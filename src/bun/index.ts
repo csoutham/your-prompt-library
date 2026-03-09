@@ -97,7 +97,7 @@ const mainWindow = new BrowserWindow({
 	title: "Your prompt library",
 	url,
 	rpc,
-	titleBarStyle: "default",
+	titleBarStyle: "hiddenInset",
 	frame: {
 		width: 1440,
 		height: 920,

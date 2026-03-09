@@ -1,10 +1,13 @@
 import type { ElectrobunConfig } from "electrobun";
 
+const isTestFlightRelease = process.env.ELECTROBUN_TARGET === "testflight";
+const appIdentifier = process.env.APP_BUNDLE_ID ?? "com.promptstore.app";
+
 export default {
 	app: {
 		name: "Your Prompt Library",
-		identifier: "com.promptstore.app",
-		version: "0.6.3",
+		identifier: appIdentifier,
+		version: "0.7.0",
 	},
 	build: {
 		// Vite builds to dist/, we copy from there
@@ -15,7 +18,17 @@ export default {
 		// Ignore Vite output in watch mode — HMR handles view rebuilds separately
 		watchIgnore: ["dist/**"],
 		mac: {
+			codesign: isTestFlightRelease,
+			notarize: false,
 			bundleCEF: false,
+			icons: "assets/icon.iconset",
+			entitlements: {
+				"com.apple.security.app-sandbox": isTestFlightRelease,
+				"com.apple.security.files.user-selected.read-write": true,
+				"com.apple.security.cs.allow-jit": true,
+				"com.apple.security.cs.allow-unsigned-executable-memory": true,
+				"com.apple.security.cs.disable-library-validation": true,
+			},
 		},
 		linux: {
 			bundleCEF: false,
