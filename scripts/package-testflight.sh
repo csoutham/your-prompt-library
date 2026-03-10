@@ -91,6 +91,9 @@ else
 	echo "No provisioning profile detected automatically. Continuing without embedding one."
 fi
 
+echo "Removing quarantine attributes from app bundle contents..."
+xattr -cr "$APP_BUNDLE" || true
+
 echo "Re-signing app bundle after Info.plist/provisioning updates..."
 codesign \
 	--force \
@@ -106,5 +109,8 @@ productbuild \
 	--component "$APP_BUNDLE" /Applications \
 	--sign "$APPLE_INSTALLER_IDENTITY" \
 	"$PKG_PATH"
+
+echo "Removing quarantine attributes from final installer package..."
+xattr -d com.apple.quarantine "$PKG_PATH" 2>/dev/null || true
 
 echo "Created $PKG_PATH"

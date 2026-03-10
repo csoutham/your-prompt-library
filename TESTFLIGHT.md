@@ -58,4 +58,5 @@ The resulting upload artifact is:
 - The app uses the macOS app sandbox in TestFlight mode and allows read/write access only to user-selected files outside its app container.
 - The packaging script automatically builds through a temporary symlink path when the project folder contains spaces, which works around an Electrobun signing bug with unquoted entitlement paths.
 - The packaging script patches the generated `Info.plist` to set `CFBundleShortVersionString`, embeds the matching provisioning profile when available, and re-signs the `.app` before building the upload package.
+- The packaging script clears `com.apple.quarantine` attributes from the app bundle and final installer package, which Apple now rejects for macOS App Store uploads.
 - If you need App Store-specific metadata next, the remaining work is App Store Connect setup rather than code changes.
