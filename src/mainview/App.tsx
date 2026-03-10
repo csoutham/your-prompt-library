@@ -521,7 +521,7 @@ function App() {
 				{errorMessage ?? (isSaving ? "Autosaving…" : statusMessage)}
 			</div>
 			<header className="app-topbar">
-				<div className="app-topbar__brand electrobun-webkit-app-region-drag">
+				<div className="app-topbar__brand">
 					<h1>Your prompt library</h1>
 				</div>
 				<div className="app-topbar__meta">

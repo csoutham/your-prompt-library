@@ -87,6 +87,7 @@ select {
 	justify-content: space-between;
 	gap: 12px;
 	padding: 10px 4px 0 14px;
+	-webkit-app-region: drag;
 }
 
 .app-topbar__brand {
@@ -94,6 +95,7 @@ select {
 	min-height: 38px;
 	display: flex;
 	align-items: center;
+	min-width: 0;
 }
 
 .app-topbar__brand h1 {
