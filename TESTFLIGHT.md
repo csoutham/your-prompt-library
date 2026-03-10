@@ -28,7 +28,7 @@ bun run package:testflight
 
 The resulting upload artifact is:
 
-- `release/*.pkg`
+- `release/mas-*/Your Prompt Library-<version>-arm64.pkg`
 
 ## Submission checklist
 

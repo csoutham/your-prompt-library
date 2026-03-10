@@ -19,7 +19,7 @@ echo "Building Mac App Store package with Electron Builder..."
 	bun run build:testflight
 )
 
-PKG_PATH="$(find "$RELEASE_DIR" -maxdepth 1 -type f -name '*.pkg' | head -n 1)"
+PKG_PATH="$(find "$RELEASE_DIR" -type f -name '*.pkg' | head -n 1)"
 
 if [[ -z "$PKG_PATH" ]]; then
 	echo "No MAS pkg found in $RELEASE_DIR" >&2
