@@ -1,16 +1,17 @@
 # Your Prompt Library
 
-`v0.9.0`
+`v0.9.1`
 
 Your Prompt Library is a local-first macOS desktop app for collecting AI prompts in folders. It is built with Electron, Bun, React, and a file-backed Markdown store so prompts stay readable and portable on disk.
 
-## What ships in v0.9.0
+## What ships in v0.9.1
 
 - Folder tree with nested folders
 - Parent and child folders only, with inline subfolder creation on parent rows
 - Distinct subfolder creation icon in the folder tree
 - Electron shell with a preload bridge instead of the previous Electrobun runtime
 - Mac App Store-oriented Electron Builder packaging configuration
+- Electron Builder config moved into a JS config file so provisioning profile paths resolve from environment variables correctly
 - Electron-based TestFlight packaging script for MAS builds
 - Native macOS Edit menu support for Select All, Copy, Paste, Undo, and Redo in text fields
 - macOS menubar shortcut with folders, subfolders, and one-click prompt copy
