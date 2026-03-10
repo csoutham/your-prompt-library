@@ -18,6 +18,9 @@ module.exports = {
 		category: "public.app-category.productivity",
 		icon: "assets/AppIcon.icns",
 		minimumSystemVersion: "12.0",
+		extendInfo: {
+			ITSAppUsesNonExemptEncryption: false,
+		},
 	},
 	mas: {
 		icon: "assets/AppIcon.icns",
@@ -28,5 +31,8 @@ module.exports = {
 		gatekeeperAssess: false,
 		type: "distribution",
 		target: ["mas"],
+		extendInfo: {
+			ITSAppUsesNonExemptEncryption: false,
+		},
 	},
 };

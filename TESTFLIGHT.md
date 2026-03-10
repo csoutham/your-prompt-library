@@ -51,4 +51,5 @@ The resulting upload artifact is:
 - MAS signing uses Electron Builder's automatic matching against the provisioning profile rather than a hard-coded `3rd Party Mac Developer Application` name.
 - The app is configured as arm64-only and declares `minimumSystemVersion` of `12.0`, which App Store Connect requires for non-universal macOS uploads.
 - The renderer build uses relative asset paths so the packaged `file://` app can load its JS and CSS correctly outside the dev server.
+- The app `Info.plist` sets `ITSAppUsesNonExemptEncryption=false`; this helps App Store Connect treat the build as exempt, but the App Store Connect compliance UI may still need to be completed once.
 - If you need App Store-specific metadata next, the remaining work is App Store Connect setup rather than code changes.
