@@ -1,22 +1,23 @@
 {
 	"name": "prompt-store",
-	"version": "0.8.7",
-	"description": "Your prompt library is a local-first macOS prompt manager built with Electrobun, Bun, and React",
+	"version": "0.9.0",
+	"description": "Your prompt library is a local-first macOS prompt manager built with Electron, Bun, and React",
+	"main": "build/electron/main.js",
 	"scripts": {
-		"start": "vite build && electrobun dev",
-		"dev": "electrobun dev --watch",
-		"dev:hmr": "concurrently \"bun run hmr\" \"bun run start\"",
+		"start": "bun run build:renderer && bun run build:electron && electron .",
+		"dev:hmr": "concurrently \"bun run hmr\" \"bun run electron:dev\"",
+		"electron:dev": "wait-on tcp:5173 && bun run build:electron && electron .",
 		"hmr": "vite --port 5173",
-		"build": "vite build && electrobun build",
-		"build:stable": "vite build && electrobun build --env=stable",
-		"build:testflight": "ELECTROBUN_TARGET=testflight vite build && ELECTROBUN_TARGET=testflight electrobun build --env=stable",
+		"build:renderer": "vite build",
+		"build:electron": "esbuild src/electron/main.ts src/electron/preload.ts --bundle --platform=node --format=cjs --outdir=build/electron --external:electron",
+		"build": "bun run build:renderer && bun run build:electron && electron-builder --mac dir",
+		"build:stable": "bun run build",
+		"build:testflight": "bun run build:renderer && bun run build:electron && electron-builder --mac mas",
 		"package:testflight": "./scripts/package-testflight.sh",
-		"build:canary": "vite build && electrobun build --env=canary",
 		"test": "bun test"
 	},
 	"dependencies": {
 		"@phosphor-icons/react": "^2.1.10",
-		"electrobun": "1.15.1",
 		"gray-matter": "^4.0.3",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
@@ -25,15 +26,50 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
+		"@types/node": "^24.4.0",
 		"@types/react": "^18.3.12",
 		"@types/react-dom": "^18.3.1",
-		"@types/three": "^0.183.1",
 		"@vitejs/plugin-react": "^4.3.4",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^9.1.0",
+		"electron": "^37.2.1",
+		"electron-builder": "^26.0.12",
+		"esbuild": "^0.25.9",
 		"postcss": "^8.4.49",
 		"tailwindcss": "^3.4.16",
 		"typescript": "^5.7.2",
-		"vite": "^6.0.3"
+		"vite": "^6.0.3",
+		"wait-on": "^8.0.3"
+	},
+	"build": {
+		"appId": "com.cjsoutham.promptlibrary",
+		"productName": "Your Prompt Library",
+		"directories": {
+			"output": "release"
+		},
+		"files": [
+			"build/electron/**/*",
+			"dist/**/*",
+			"assets/tray-icon.svg",
+			"package.json"
+		],
+		"asar": true,
+		"mac": {
+			"target": [
+				"dir"
+			],
+			"category": "public.app-category.productivity"
+		},
+		"mas": {
+			"provisioningProfile": "${env.APP_PROVISION_PROFILE}",
+			"entitlements": "config/entitlements.mas.plist",
+			"entitlementsInherit": "config/entitlements.mas.inherit.plist",
+			"hardenedRuntime": false,
+			"gatekeeperAssess": false,
+			"type": "distribution",
+			"target": [
+				"mas"
+			]
+		}
 	}
 }
