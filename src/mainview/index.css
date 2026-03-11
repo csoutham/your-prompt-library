@@ -543,7 +543,12 @@ kbd {
 }
 
 .prompt-card__excerpt {
+	font-size: 0.88rem;
 	line-height: 1.45;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
 }
 
 .prompt-card__meta {
