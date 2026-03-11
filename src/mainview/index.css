@@ -132,6 +132,7 @@ select {
 .prompt-list-panel,
 .editor-panel {
 	padding: 24px;
+	min-height: 0;
 }
 
 .sidebar {
@@ -441,6 +442,8 @@ kbd {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	min-height: 0;
+	overflow: hidden;
 	background: linear-gradient(180deg, rgba(255, 250, 243, 0.72), rgba(248, 239, 229, 0.46));
 	border-right: 1px solid var(--line);
 }
@@ -553,6 +556,8 @@ kbd {
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
+	min-height: 0;
+	overflow: hidden;
 	background:
 		linear-gradient(180deg, rgba(255, 252, 246, 0.96) 0%, rgba(243, 235, 225, 0.82) 100%);
 }
@@ -571,6 +576,7 @@ kbd {
 	padding: 18px;
 	flex: 1;
 	min-height: 0;
+	overflow: hidden;
 }
 
 .editor-ribbon {
@@ -632,12 +638,16 @@ kbd {
 .editor-field--body {
 	flex: 1;
 	min-height: 0;
+	overflow: hidden;
 }
 
 .editor-field--body textarea {
 	flex: 1;
 	min-height: 0;
 	height: 100%;
+	resize: none;
+	overflow: auto;
+	overscroll-behavior: contain;
 }
 
 .empty-state {
