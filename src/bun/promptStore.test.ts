@@ -179,6 +179,48 @@ describe("PromptStore", () => {
 		expect(cloudKitPromptToRecord(promptRecord).cloudKitRecordName).toBe(promptRecord.recordName);
 	});
 
+	test("builds a CloudKit push plan from local changes and tombstones", async () => {
+		const store = new PromptStore(rootDir);
+		const folder = await store.createFolder("Sync Folder", null);
+		const prompt = await store.createPrompt(folder.id, "Draft");
+		const saved = await store.savePrompt(prompt.id, "Draft", "Push me");
+		await store.deletePrompt(saved.id);
+
+		const syncedFolder = await store.renameFolder(folder.id, "Synced Folder");
+		await store.writeSyncState({
+			version: 1,
+			databaseChangeToken: "db-token-1",
+			zoneChangeTokens: { "prompt-library": "zone-token-1" },
+			lastSyncAt: "2026-03-11T10:00:00.000Z",
+			lastFullSyncAt: null,
+		});
+
+		const snapshot = await store.exportSnapshot({ includeDeleted: true });
+		const deletedPrompt = snapshot.prompts.find((entry) => entry.id === saved.id)!;
+		deletedPrompt.cloudKitRecordName = `prompt.${deletedPrompt.id}`;
+		await store.importSnapshot(snapshot);
+
+		const plan = await store.buildCloudKitPushPlan();
+
+		expect(plan.foldersToSave.some((entry) => entry.fields.folderId === syncedFolder.id)).toBe(true);
+		expect(plan.promptsToSave).toHaveLength(0);
+		expect(plan.recordsToDelete.some((entry) => entry.recordName === `prompt.${saved.id}`)).toBe(true);
+	});
+
+	test("updates sync state after a completed CloudKit run", async () => {
+		const store = new PromptStore(rootDir);
+		const state = await store.markCloudKitSyncCompleted({
+			databaseChangeToken: "db-token-2",
+			zoneChangeTokens: { "prompt-library": "zone-token-2" },
+			lastFullSyncAt: "2026-03-11T12:00:00.000Z",
+		});
+
+		expect(state.databaseChangeToken).toBe("db-token-2");
+		expect(state.zoneChangeTokens["prompt-library"]).toBe("zone-token-2");
+		expect(state.lastSyncAt).not.toBeNull();
+		expect(state.lastFullSyncAt).toBe("2026-03-11T12:00:00.000Z");
+	});
+
 	test("skips invalid prompt files without crashing", async () => {
 		const store = new PromptStore(rootDir);
 		await store.bootstrap();

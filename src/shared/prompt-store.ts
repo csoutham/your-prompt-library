@@ -66,7 +66,7 @@ export interface PromptRepository {
 	renamePrompt(promptId: string, title: string): Promise<PromptRecord>;
 	deletePrompt(promptId: string): Promise<void>;
 	searchPrompts(query: string, options?: RecordQueryOptions): Promise<PromptSummary[]>;
-	exportSnapshot(): Promise<PromptLibrarySnapshot>;
+	exportSnapshot(options?: RecordQueryOptions): Promise<PromptLibrarySnapshot>;
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void>;
 }
 

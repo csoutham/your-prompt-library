@@ -248,11 +248,11 @@ export class FilePromptRepository implements PromptRepository {
 			.map(toPromptSummary);
 	}
 
-	async exportSnapshot(): Promise<PromptLibrarySnapshot> {
+	async exportSnapshot(options?: RecordQueryOptions): Promise<PromptLibrarySnapshot> {
 		await this.ensureInitialized();
 		const [folders, prompts] = await Promise.all([
-			this.readFolders(),
-			this.listAllPrompts(),
+			this.readFolders(options),
+			this.listAllPrompts(options),
 		]);
 
 		return {

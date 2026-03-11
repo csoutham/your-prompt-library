@@ -40,6 +40,19 @@ export type CloudKitPromptRecord = {
 	fields: CloudKitPromptFields;
 };
 
+export type CloudKitDeleteRecord = {
+	recordType: typeof CLOUDKIT_FOLDER_RECORD_TYPE | typeof CLOUDKIT_PROMPT_RECORD_TYPE;
+	recordName: string;
+	zoneName: CloudKitRecordZoneName;
+};
+
+export type CloudKitPushPlan = {
+	generatedAt: string;
+	foldersToSave: CloudKitFolderRecord[];
+	promptsToSave: CloudKitPromptRecord[];
+	recordsToDelete: CloudKitDeleteRecord[];
+};
+
 export function folderRecordName(folder: FolderRecord): string {
 	return folder.cloudKitRecordName ?? `folder.${folder.id}`;
 }
@@ -80,6 +93,22 @@ export function promptToCloudKitRecord(prompt: PromptRecord): CloudKitPromptReco
 			deletedAt: prompt.deletedAt,
 			syncStatus: prompt.syncStatus,
 		},
+	};
+}
+
+export function folderToCloudKitDelete(folder: FolderRecord): CloudKitDeleteRecord {
+	return {
+		recordType: CLOUDKIT_FOLDER_RECORD_TYPE,
+		recordName: folderRecordName(folder),
+		zoneName: "prompt-library",
+	};
+}
+
+export function promptToCloudKitDelete(prompt: PromptRecord): CloudKitDeleteRecord {
+	return {
+		recordType: CLOUDKIT_PROMPT_RECORD_TYPE,
+		recordName: promptRecordName(prompt),
+		zoneName: "prompt-library",
 	};
 }
 

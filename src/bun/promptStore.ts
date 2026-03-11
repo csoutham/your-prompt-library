@@ -9,20 +9,28 @@ import type {
 	PromptSummary,
 	RecordQueryOptions,
 } from "../shared/prompt-store";
+import type { CloudKitPushPlan } from "../shared/cloudkit";
+import { CloudKitSyncService } from "./cloudKitSyncService";
 import { FilePromptRepository } from "./filePromptRepository";
 import { FileSyncStateStore } from "./syncStateStore";
 
 export { PromptStoreError } from "./filePromptRepository";
 export { FilePromptRepository } from "./filePromptRepository";
 export { FileSyncStateStore } from "./syncStateStore";
+export { CloudKitSyncService } from "./cloudKitSyncService";
 
 export class PromptStore implements PromptRepository {
 	readonly repository: FilePromptRepository;
 	readonly syncStateStore: FileSyncStateStore;
+	readonly cloudKitSyncService: CloudKitSyncService;
 
 	constructor(rootDir: string) {
 		this.repository = new FilePromptRepository(rootDir);
 		this.syncStateStore = new FileSyncStateStore(join(rootDir, ".cloudkit"));
+		this.cloudKitSyncService = new CloudKitSyncService(
+			this.repository,
+			this.syncStateStore,
+		);
 	}
 
 	bootstrap(options?: RecordQueryOptions): Promise<BootstrapPayload> {
@@ -77,8 +85,8 @@ export class PromptStore implements PromptRepository {
 		return this.repository.searchPrompts(query, options);
 	}
 
-	exportSnapshot(): Promise<PromptLibrarySnapshot> {
-		return this.repository.exportSnapshot();
+	exportSnapshot(options?: RecordQueryOptions): Promise<PromptLibrarySnapshot> {
+		return this.repository.exportSnapshot(options);
 	}
 
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void> {
@@ -95,5 +103,15 @@ export class PromptStore implements PromptRepository {
 
 	resetSyncState(): Promise<CloudKitSyncState> {
 		return this.syncStateStore.reset();
+	}
+
+	buildCloudKitPushPlan(): Promise<CloudKitPushPlan> {
+		return this.cloudKitSyncService.buildPushPlan();
+	}
+
+	markCloudKitSyncCompleted(
+		nextState: Partial<CloudKitSyncState> = {},
+	): Promise<CloudKitSyncState> {
+		return this.cloudKitSyncService.markSyncCompleted(nextState);
 	}
 }
