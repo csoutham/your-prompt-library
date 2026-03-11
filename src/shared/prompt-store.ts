@@ -40,6 +40,14 @@ export type PromptLibrarySnapshot = {
 	prompts: PromptRecord[];
 };
 
+export type CloudKitSyncState = {
+	version: 1;
+	databaseChangeToken: string | null;
+	zoneChangeTokens: Record<string, string | null>;
+	lastSyncAt: string | null;
+	lastFullSyncAt: string | null;
+};
+
 export type RecordQueryOptions = {
 	includeDeleted?: boolean;
 };
@@ -60,6 +68,12 @@ export interface PromptRepository {
 	searchPrompts(query: string, options?: RecordQueryOptions): Promise<PromptSummary[]>;
 	exportSnapshot(): Promise<PromptLibrarySnapshot>;
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void>;
+}
+
+export interface SyncStateStore {
+	read(): Promise<CloudKitSyncState>;
+	write(state: CloudKitSyncState): Promise<CloudKitSyncState>;
+	reset(): Promise<CloudKitSyncState>;
 }
 
 export type PromptStoreRpcSchema = {

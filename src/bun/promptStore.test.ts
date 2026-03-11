@@ -3,6 +3,12 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import matter from "gray-matter";
+import {
+	cloudKitFolderToRecord,
+	cloudKitPromptToRecord,
+	folderToCloudKitRecord,
+	promptToCloudKitRecord,
+} from "../shared/cloudkit";
 import { PromptStore } from "./promptStore";
 
 let rootDir: string;
@@ -131,6 +137,46 @@ describe("PromptStore", () => {
 		expect(await store.getPrompt(prompt.id)).toBeNull();
 		const deleted = await store.getPrompt(prompt.id, { includeDeleted: true });
 		expect(deleted?.deletedAt).not.toBeNull();
+	});
+
+	test("persists sync cursor state separately from prompt content", async () => {
+		const store = new PromptStore(rootDir);
+		const initial = await store.readSyncState();
+		expect(initial.databaseChangeToken).toBeNull();
+
+		await store.writeSyncState({
+			version: 1,
+			databaseChangeToken: "db-token-1",
+			zoneChangeTokens: { "prompt-library": "zone-token-1" },
+			lastSyncAt: "2026-03-11T10:00:00.000Z",
+			lastFullSyncAt: null,
+		});
+
+		const reloaded = new PromptStore(rootDir);
+		expect(await reloaded.readSyncState()).toEqual({
+			version: 1,
+			databaseChangeToken: "db-token-1",
+			zoneChangeTokens: { "prompt-library": "zone-token-1" },
+			lastSyncAt: "2026-03-11T10:00:00.000Z",
+			lastFullSyncAt: null,
+		});
+	});
+
+	test("maps prompt and folder records into CloudKit payloads", async () => {
+		const store = new PromptStore(rootDir);
+		const folder = await store.createFolder("Cloud", null);
+		const prompt = await store.createPrompt(folder.id, "Sync me");
+		const saved = await store.savePrompt(prompt.id, "Sync me", "Body");
+
+		const folderRecord = folderToCloudKitRecord(folder);
+		const promptRecord = promptToCloudKitRecord(saved);
+
+		expect(folderRecord.recordType).toBe("PromptFolder");
+		expect(folderRecord.fields.folderId).toBe(folder.id);
+		expect(promptRecord.recordType).toBe("Prompt");
+		expect(promptRecord.fields.promptId).toBe(saved.id);
+		expect(cloudKitFolderToRecord(folderRecord).cloudKitRecordName).toBe(folderRecord.recordName);
+		expect(cloudKitPromptToRecord(promptRecord).cloudKitRecordName).toBe(promptRecord.recordName);
 	});
 
 	test("skips invalid prompt files without crashing", async () => {
