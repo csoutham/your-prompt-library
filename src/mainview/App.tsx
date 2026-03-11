@@ -72,6 +72,8 @@ type DialogState =
 	  }
 	| null;
 
+const DEFAULT_PROMPT_TITLE = "Untitled Prompt";
+
 function App() {
 	const [sortMode, setSortMode] = useState<"updated" | "title" | "created">("updated");
 	const [folders, setFolders] = useState<FolderRecord[]>([]);
@@ -89,6 +91,7 @@ function App() {
 	const [dialogValue, setDialogValue] = useState("");
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
 	const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+	const [isEditingDefaultTitle, setIsEditingDefaultTitle] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 	const dialogInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -103,6 +106,7 @@ function App() {
 
 		setDraftTitle(selectedPrompt.title);
 		setDraftBody(selectedPrompt.bodyMarkdown);
+		setIsEditingDefaultTitle(false);
 	}, [selectedPrompt]);
 
 	useEffect(() => {
@@ -116,12 +120,22 @@ function App() {
 			return;
 		}
 
+		if (
+			isEditingDefaultTitle &&
+			selectedPrompt.title === DEFAULT_PROMPT_TITLE &&
+			selectedPrompt.bodyMarkdown.trim() === "" &&
+			draftTitle.trim() === "" &&
+			draftBody.trim() === ""
+		) {
+			return;
+		}
+
 		const timeout = window.setTimeout(() => {
 			void saveCurrentPrompt();
 		}, 350);
 
 		return () => window.clearTimeout(timeout);
-	}, [draftBody, draftTitle, selectedPrompt]);
+	}, [draftBody, draftTitle, isEditingDefaultTitle, selectedPrompt]);
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -274,6 +288,25 @@ function App() {
 	async function selectPrompt(promptId: string) {
 		const prompt = await promptStoreApi.getPrompt(promptId);
 		setSelectedPrompt(prompt);
+	}
+
+	function handleTitleFocus() {
+		if (
+			selectedPrompt?.title === DEFAULT_PROMPT_TITLE &&
+			selectedPrompt.bodyMarkdown.trim() === "" &&
+			draftTitle === DEFAULT_PROMPT_TITLE &&
+			draftBody.trim() === ""
+		) {
+			setDraftTitle("");
+			setIsEditingDefaultTitle(true);
+		}
+	}
+
+	function handleTitleBlur() {
+		if (isEditingDefaultTitle && draftTitle.trim() === "" && draftBody.trim() === "") {
+			setDraftTitle(DEFAULT_PROMPT_TITLE);
+		}
+		setIsEditingDefaultTitle(false);
 	}
 
 	function openDialog(nextDialog: DialogState) {
@@ -775,6 +808,8 @@ function App() {
 								<input
 									value={draftTitle}
 									onChange={(event) => setDraftTitle(event.target.value)}
+									onFocus={handleTitleFocus}
+									onBlur={handleTitleBlur}
 								/>
 							</label>
 							<label className="editor-field editor-field--body">
