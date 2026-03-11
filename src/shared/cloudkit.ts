@@ -1,9 +1,10 @@
 import type { FolderRecord, PromptRecord, SyncStatus } from "./prompt-store";
+import { CLOUDKIT_ZONE_NAME } from "./cloudkit-config";
 
 export const CLOUDKIT_FOLDER_RECORD_TYPE = "PromptFolder";
 export const CLOUDKIT_PROMPT_RECORD_TYPE = "Prompt";
 
-export type CloudKitRecordZoneName = "prompt-library";
+export type CloudKitRecordZoneName = typeof CLOUDKIT_ZONE_NAME;
 
 export type CloudKitFolderFields = {
 	folderId: string;
@@ -79,7 +80,7 @@ export function folderToCloudKitRecord(folder: FolderRecord): CloudKitFolderReco
 	return {
 		recordType: CLOUDKIT_FOLDER_RECORD_TYPE,
 		recordName: folderRecordName(folder),
-		zoneName: "prompt-library",
+		zoneName: CLOUDKIT_ZONE_NAME,
 		fields: {
 			folderId: folder.id,
 			name: folder.name,
@@ -96,7 +97,7 @@ export function promptToCloudKitRecord(prompt: PromptRecord): CloudKitPromptReco
 	return {
 		recordType: CLOUDKIT_PROMPT_RECORD_TYPE,
 		recordName: promptRecordName(prompt),
-		zoneName: "prompt-library",
+		zoneName: CLOUDKIT_ZONE_NAME,
 		fields: {
 			promptId: prompt.id,
 			title: prompt.title,
@@ -114,7 +115,7 @@ export function folderToCloudKitDelete(folder: FolderRecord): CloudKitDeleteReco
 	return {
 		recordType: CLOUDKIT_FOLDER_RECORD_TYPE,
 		recordName: folderRecordName(folder),
-		zoneName: "prompt-library",
+		zoneName: CLOUDKIT_ZONE_NAME,
 		deletedAt: folder.deletedAt ?? folder.updatedAt,
 	};
 }
@@ -123,7 +124,7 @@ export function promptToCloudKitDelete(prompt: PromptRecord): CloudKitDeleteReco
 	return {
 		recordType: CLOUDKIT_PROMPT_RECORD_TYPE,
 		recordName: promptRecordName(prompt),
-		zoneName: "prompt-library",
+		zoneName: CLOUDKIT_ZONE_NAME,
 		deletedAt: prompt.deletedAt ?? prompt.updatedAt,
 	};
 }

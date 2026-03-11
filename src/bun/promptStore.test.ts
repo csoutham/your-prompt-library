@@ -252,8 +252,8 @@ describe("PromptStore", () => {
 		const remoteFolder = folderToCloudKitRecord({
 			...folder,
 			name: "Remote Folder",
-			updatedAt: "2026-03-11T13:00:00.000Z",
-			lastSyncedAt: "2026-03-11T13:00:00.000Z",
+			updatedAt: "2099-03-11T13:00:00.000Z",
+			lastSyncedAt: "2099-03-11T13:00:00.000Z",
 			syncStatus: "synced",
 			cloudKitRecordName: `folder.${folder.id}`,
 		});
@@ -261,8 +261,8 @@ describe("PromptStore", () => {
 			...locallyEdited,
 			title: "Remote Prompt",
 			bodyMarkdown: "Remote version",
-			updatedAt: "2026-03-11T13:05:00.000Z",
-			lastSyncedAt: "2026-03-11T13:05:00.000Z",
+			updatedAt: "2099-03-11T13:05:00.000Z",
+			lastSyncedAt: "2099-03-11T13:05:00.000Z",
 			syncStatus: "synced",
 			cloudKitRecordName: `prompt.${locallyEdited.id}`,
 		});
