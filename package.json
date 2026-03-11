@@ -1,6 +1,6 @@
 {
 	"name": "prompt-store",
-	"version": "0.9.11",
+	"version": "0.9.12",
 	"description": "Your prompt library is a local-first macOS prompt manager built with Electron, Bun, and React",
 	"main": "build/electron/main.js",
 	"author": "Chris Southam",
@@ -9,6 +9,7 @@
 		"url": "https://github.com/cjsoutham/promptstore"
 	},
 	"scripts": {
+		"postinstall": "node node_modules/electron/install.js",
 		"start": "bun run build:renderer && bun run build:electron && electron .",
 		"dev:hmr": "concurrently \"bun run hmr\" \"bun run electron:dev\"",
 		"electron:dev": "wait-on tcp:5173 && bun run build:electron && electron .",

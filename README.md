@@ -1,15 +1,16 @@
 # Your Prompt Library
 
-`v0.9.11`
+`v0.9.12`
 
 Your Prompt Library is a local-first macOS desktop app for collecting AI prompts in folders. It is built with Electron, Bun, React, and a file-backed Markdown store so prompts stay readable and portable on disk.
 
-## What ships in v0.9.11
+## What ships in v0.9.12
 
 - Folder tree with nested folders
 - Parent and child folders only, with inline subfolder creation on parent rows
 - Distinct subfolder creation icon in the folder tree
 - Electron shell with a preload bridge instead of the previous Electrobun runtime
+- Bun installs now explicitly run Electron's binary installer so local `dev:hmr` and `start` runs have a usable `Electron.app`
 - Mac App Store-oriented Electron Builder packaging configuration
 - Electron Builder config moved into a JS config file so provisioning profile paths resolve from environment variables correctly
 - Electron-based TestFlight packaging script for MAS builds
@@ -64,6 +65,12 @@ Your Prompt Library is a local-first macOS desktop app for collecting AI prompts
 ```bash
 bun install
 bun run dev:hmr
+```
+
+If a machine was installed before this fix and the Electron binary is still missing, rerun:
+
+```bash
+bun install
 ```
 
 If you prefer the bundled desktop flow without Vite HMR:
