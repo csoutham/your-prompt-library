@@ -150,6 +150,33 @@ export type PromptStoreRpcSchema = {
 				params: undefined;
 				response: { imported: boolean };
 			};
+			cloudKitHealth: {
+				params: undefined;
+				response: {
+					id: string;
+					ok: boolean;
+					result?: Record<string, string>;
+					error?: string;
+				};
+			};
+			cloudKitDescribeConfig: {
+				params: undefined;
+				response: {
+					id: string;
+					ok: boolean;
+					result?: Record<string, string>;
+					error?: string;
+				};
+			};
+			cloudKitAccountStatus: {
+				params: undefined;
+				response: {
+					id: string;
+					ok: boolean;
+					result?: Record<string, string>;
+					error?: string;
+				};
+			};
 		};
 		messages: {};
 	};

@@ -28,6 +28,24 @@ declare global {
 			copyPrompt: (promptId: string) => Promise<{ copied: true }>;
 			exportLibrary: () => Promise<{ filePath: string | null }>;
 			importLibrary: () => Promise<{ imported: boolean }>;
+			cloudKitHealth: () => Promise<{
+				id: string;
+				ok: boolean;
+				result?: Record<string, string>;
+				error?: string;
+			}>;
+			cloudKitDescribeConfig: () => Promise<{
+				id: string;
+				ok: boolean;
+				result?: Record<string, string>;
+				error?: string;
+			}>;
+			cloudKitAccountStatus: () => Promise<{
+				id: string;
+				ok: boolean;
+				result?: Record<string, string>;
+				error?: string;
+			}>;
 		};
 	}
 }

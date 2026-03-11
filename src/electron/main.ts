@@ -13,6 +13,7 @@ import {
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { CloudKitBridgeClient } from "./cloudKitBridge";
 import { PromptStore, PromptStoreError } from "../bun/promptStore";
 import type {
 	FolderRecord,
@@ -28,6 +29,7 @@ const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let promptStore: PromptStore;
+let cloudKitBridge: CloudKitBridgeClient;
 type TrayMenuItem = MenuItemConstructorOptions;
 
 type PromptApi = {
@@ -51,6 +53,9 @@ type PromptApi = {
 	copyPrompt: (promptId: string) => Promise<{ copied: true }>;
 	exportLibrary: () => Promise<{ filePath: string | null }>;
 	importLibrary: () => Promise<{ imported: boolean }>;
+	cloudKitHealth: () => Promise<{ id: string; ok: boolean; result?: Record<string, string>; error?: string }>;
+	cloudKitDescribeConfig: () => Promise<{ id: string; ok: boolean; result?: Record<string, string>; error?: string }>;
+	cloudKitAccountStatus: () => Promise<{ id: string; ok: boolean; result?: Record<string, string>; error?: string }>;
 };
 
 function trayIconPath() {
@@ -353,11 +358,15 @@ const promptApi: PromptApi = {
 		await refreshTrayMenu();
 		return { imported: true as const };
 	},
+	cloudKitHealth: async () => cloudKitBridge.healthCheck(),
+	cloudKitDescribeConfig: async () => cloudKitBridge.describeConfig(),
+	cloudKitAccountStatus: async () => cloudKitBridge.accountStatus(),
 };
 
 app.whenReady().then(async () => {
 	app.setName("Your Prompt Library");
 	promptStore = new PromptStore(join(app.getPath("userData"), "library"));
+	cloudKitBridge = new CloudKitBridgeClient();
 	for (const [channel, handler] of Object.entries(promptApi)) {
 		ipcMain.handle(`prompt-store:${channel}`, async (_event, ...args) => {
 			const invoke = handler as (...parameters: unknown[]) => Promise<unknown>;
@@ -380,6 +389,10 @@ app.on("window-all-closed", () => {
 	if (process.platform !== "darwin") {
 		app.quit();
 	}
+});
+
+app.on("before-quit", async () => {
+	await cloudKitBridge?.dispose();
 });
 
 export { promptApi };

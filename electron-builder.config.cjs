@@ -12,6 +12,12 @@ module.exports = {
 		"assets/tray-icon.png",
 		"package.json",
 	],
+	extraResources: [
+		{
+			from: "build/native",
+			to: "native",
+		},
+	],
 	asar: true,
 	mac: {
 		target: ["dir"],

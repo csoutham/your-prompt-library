@@ -17,6 +17,9 @@ const channels = [
 	"copyPrompt",
 	"exportLibrary",
 	"importLibrary",
+	"cloudKitHealth",
+	"cloudKitDescribeConfig",
+	"cloudKitAccountStatus",
 ] as const;
 
 type Channel = (typeof channels)[number];

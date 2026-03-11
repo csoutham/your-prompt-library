@@ -26,13 +26,27 @@ This app is being prepared for CloudKit sync with these defaults:
 - Record mapping and sync plan types live in [cloudkit.ts](/Users/Chris/Work/Projects/Apps/PromptStore/macos/src/shared/cloudkit.ts)
 - The selected container and scope live in [cloudkit-config.ts](/Users/Chris/Work/Projects/Apps/PromptStore/macos/src/shared/cloudkit-config.ts)
 
+## Native bridge
+
+This repo now includes a native Swift helper at [native/CloudKitBridge](/Users/Chris/Work/Projects/Apps/PromptStore/macos/native/CloudKitBridge) and an Electron-side client at [cloudKitBridge.ts](/Users/Chris/Work/Projects/Apps/PromptStore/macos/src/electron/cloudKitBridge.ts).
+
+Current bridge commands:
+
+- `health`
+- `describeConfig`
+- `accountStatus`
+
+Build it with:
+
+```bash
+bun run build:cloudkit-bridge
+```
+
 ## Important implementation note
 
-Electron does not give this app direct access to Apple's native CloudKit framework by itself. The remaining implementation work is a native macOS bridge that can:
+Electron does not give this app direct access to Apple's native CloudKit framework by itself. The remaining implementation work in the bridge is adding commands that can:
 
 - check iCloud account status
 - fetch changes from the private database
 - push save and delete operations
 - return change tokens for incremental sync
-
-That bridge can be added as a small Swift helper or native module while keeping the existing React and Electron app intact.

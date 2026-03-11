@@ -8,6 +8,7 @@ This project is prepared for a macOS TestFlight submission path built from Elect
 - Stable release build script: `bun run build:stable`
 - Electron main process and preload bridge for the existing React renderer
 - Electron Builder config at [electron-builder.config.cjs](/Users/Chris/Work/Projects/Apps/PromptStore/macos/electron-builder.config.cjs)
+- Native CloudKit helper build script at [build-cloudkit-bridge.sh](/Users/Chris/Work/Projects/Apps/PromptStore/macos/scripts/build-cloudkit-bridge.sh)
 - MAS entitlements at [entitlements.mas.plist](/Users/Chris/Work/Projects/Apps/PromptStore/macos/config/entitlements.mas.plist) and [entitlements.mas.inherit.plist](/Users/Chris/Work/Projects/Apps/PromptStore/macos/config/entitlements.mas.inherit.plist)
 - App icon asset at [AppIcon.icns](/Users/Chris/Work/Projects/Apps/PromptStore/macos/assets/AppIcon.icns)
 - Tray icon asset at [tray-icon.png](/Users/Chris/Work/Projects/Apps/PromptStore/macos/assets/tray-icon.png)
@@ -31,6 +32,10 @@ bun run package:testflight
 The resulting upload artifact is:
 
 - `release/mas-*/Your Prompt Library-<version>-arm64.pkg`
+
+The packaged app also includes:
+
+- `native/CloudKitBridge`
 
 ## Submission checklist
 
