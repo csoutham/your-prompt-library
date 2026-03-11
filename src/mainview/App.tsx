@@ -5,7 +5,7 @@ import {
 	Check,
 	Copy,
 	DownloadSimple,
-	FolderPlus,
+	FolderSimplePlus,
 	FolderSimpleDashed,
 	PencilSimple,
 	Keyboard,
@@ -1007,7 +1007,10 @@ function renderFolderTree(
 								title={`Create subfolder in ${folder.name}`}
 								onClick={() => onCreateChild(folder)}
 							>
-								<FolderPlus className="button__icon-svg" aria-hidden="true" />
+								<FolderSimplePlus
+									className="button__icon-svg"
+									aria-hidden="true"
+								/>
 							</button>
 						) : null}
 						<button
