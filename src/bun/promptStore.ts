@@ -1,7 +1,5 @@
-import { join } from "node:path";
 import type {
 	BootstrapPayload,
-	CloudKitSyncState,
 	FolderRecord,
 	PromptLibrarySnapshot,
 	PromptRecord,
@@ -9,32 +7,16 @@ import type {
 	PromptSummary,
 	RecordQueryOptions,
 } from "../shared/prompt-store";
-import type {
-	CloudKitPullPayload,
-	CloudKitPullResult,
-	CloudKitPushPlan,
-} from "../shared/cloudkit";
-import { CloudKitSyncService } from "./cloudKitSyncService";
 import { FilePromptRepository } from "./filePromptRepository";
-import { FileSyncStateStore } from "./syncStateStore";
 
 export { PromptStoreError } from "./filePromptRepository";
 export { FilePromptRepository } from "./filePromptRepository";
-export { FileSyncStateStore } from "./syncStateStore";
-export { CloudKitSyncService } from "./cloudKitSyncService";
 
 export class PromptStore implements PromptRepository {
 	readonly repository: FilePromptRepository;
-	readonly syncStateStore: FileSyncStateStore;
-	readonly cloudKitSyncService: CloudKitSyncService;
 
 	constructor(rootDir: string) {
 		this.repository = new FilePromptRepository(rootDir);
-		this.syncStateStore = new FileSyncStateStore(join(rootDir, ".cloudkit"));
-		this.cloudKitSyncService = new CloudKitSyncService(
-			this.repository,
-			this.syncStateStore,
-		);
 	}
 
 	bootstrap(options?: RecordQueryOptions): Promise<BootstrapPayload> {
@@ -95,38 +77,5 @@ export class PromptStore implements PromptRepository {
 
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void> {
 		return this.repository.importSnapshot(snapshot);
-	}
-
-	readSyncState(): Promise<CloudKitSyncState> {
-		return this.syncStateStore.read();
-	}
-
-	writeSyncState(state: CloudKitSyncState): Promise<CloudKitSyncState> {
-		return this.syncStateStore.write(state);
-	}
-
-	resetSyncState(): Promise<CloudKitSyncState> {
-		return this.syncStateStore.reset();
-	}
-
-	buildCloudKitPushPlan(): Promise<CloudKitPushPlan> {
-		return this.cloudKitSyncService.buildPushPlan();
-	}
-
-	markCloudKitSyncCompleted(
-		nextState: Partial<CloudKitSyncState> = {},
-	): Promise<CloudKitSyncState> {
-		return this.cloudKitSyncService.markSyncCompleted(nextState);
-	}
-
-	applyCloudKitPullPayload(payload: CloudKitPullPayload): Promise<CloudKitPullResult> {
-		return this.cloudKitSyncService.applyPullPayload(payload);
-	}
-
-	acknowledgeCloudKitPushPlan(
-		plan: CloudKitPushPlan,
-		nextState: Partial<CloudKitSyncState> = {},
-	): Promise<CloudKitSyncState> {
-		return this.cloudKitSyncService.acknowledgePushPlan(plan, nextState);
 	}
 }

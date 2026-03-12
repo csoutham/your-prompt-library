@@ -12,13 +12,6 @@ module.exports = {
 		"assets/tray-icon.png",
 		"package.json",
 	],
-	extraResources: [
-		{
-			from: "build/native",
-			to: "native",
-		},
-	],
-	afterSign: "scripts/after-sign.cjs",
 	asar: true,
 	mac: {
 		target: ["dir"],

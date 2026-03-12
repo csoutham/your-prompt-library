@@ -1,5 +1,3 @@
-import type { CloudKitRuntimeStatus } from "./cloudkit";
-
 export type SyncStatus = "local" | "modified" | "synced" | "conflict";
 
 export type SyncMetadata = {
@@ -42,14 +40,6 @@ export type PromptLibrarySnapshot = {
 	prompts: PromptRecord[];
 };
 
-export type CloudKitSyncState = {
-	version: 1;
-	databaseChangeToken: string | null;
-	zoneChangeTokens: Record<string, string | null>;
-	lastSyncAt: string | null;
-	lastFullSyncAt: string | null;
-};
-
 export type RecordQueryOptions = {
 	includeDeleted?: boolean;
 };
@@ -70,12 +60,6 @@ export interface PromptRepository {
 	searchPrompts(query: string, options?: RecordQueryOptions): Promise<PromptSummary[]>;
 	exportSnapshot(options?: RecordQueryOptions): Promise<PromptLibrarySnapshot>;
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void>;
-}
-
-export interface SyncStateStore {
-	read(): Promise<CloudKitSyncState>;
-	write(state: CloudKitSyncState): Promise<CloudKitSyncState>;
-	reset(): Promise<CloudKitSyncState>;
 }
 
 export type PromptStoreRpcSchema = {
@@ -151,41 +135,6 @@ export type PromptStoreRpcSchema = {
 			importLibrary: {
 				params: undefined;
 				response: { imported: boolean };
-			};
-			cloudKitHealth: {
-				params: undefined;
-				response: {
-					id: string;
-					ok: boolean;
-					result?: Record<string, string>;
-					error?: string;
-				};
-			};
-			cloudKitDescribeConfig: {
-				params: undefined;
-				response: {
-					id: string;
-					ok: boolean;
-					result?: Record<string, string>;
-					error?: string;
-				};
-			};
-			cloudKitAccountStatus: {
-				params: undefined;
-				response: {
-					id: string;
-					ok: boolean;
-					result?: Record<string, string>;
-					error?: string;
-				};
-			};
-			cloudKitSyncNow: {
-				params: undefined;
-				response: CloudKitRuntimeStatus;
-			};
-			cloudKitSyncStatus: {
-				params: undefined;
-				response: CloudKitRuntimeStatus;
 			};
 		};
 		messages: {};

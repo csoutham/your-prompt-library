@@ -21,9 +21,4 @@ export const promptStoreApi = {
 	copyPrompt: (promptId: string) => window.promptStore.copyPrompt(promptId),
 	exportLibrary: () => window.promptStore.exportLibrary(),
 	importLibrary: () => window.promptStore.importLibrary(),
-	cloudKitHealth: () => window.promptStore.cloudKitHealth(),
-	cloudKitDescribeConfig: () => window.promptStore.cloudKitDescribeConfig(),
-	cloudKitAccountStatus: () => window.promptStore.cloudKitAccountStatus(),
-	cloudKitSyncNow: () => window.promptStore.cloudKitSyncNow(),
-	cloudKitSyncStatus: () => window.promptStore.cloudKitSyncStatus(),
 };
