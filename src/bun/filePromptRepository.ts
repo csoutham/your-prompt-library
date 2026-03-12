@@ -482,10 +482,10 @@ function normalizeFolderRecord(folder: Partial<FolderRecord>): FolderRecord {
 		id: folder.id ?? crypto.randomUUID(),
 		name: folder.name ?? DEFAULT_FOLDER_NAME,
 		parentId: folder.parentId ?? null,
-		createdAt: folder.createdAt ?? new Date().toISOString(),
-		updatedAt: folder.updatedAt ?? new Date().toISOString(),
-		deletedAt: folder.deletedAt ?? null,
-		lastSyncedAt: folder.lastSyncedAt ?? null,
+		createdAt: normalizeTimestamp(folder.createdAt),
+		updatedAt: normalizeTimestamp(folder.updatedAt),
+		deletedAt: normalizeOptionalTimestamp(folder.deletedAt),
+		lastSyncedAt: normalizeOptionalTimestamp(folder.lastSyncedAt),
 		syncStatus: folder.syncStatus ?? "local",
 		cloudKitRecordName: folder.cloudKitRecordName ?? null,
 	};
@@ -497,13 +497,41 @@ function normalizePromptRecord(prompt: Partial<PromptRecord>): PromptRecord {
 		title: normalizeName(prompt.title ?? "Untitled Prompt", "Untitled Prompt"),
 		folderId: prompt.folderId ?? "",
 		bodyMarkdown: prompt.bodyMarkdown ?? "",
-		createdAt: prompt.createdAt ?? new Date().toISOString(),
-		updatedAt: prompt.updatedAt ?? new Date().toISOString(),
-		deletedAt: prompt.deletedAt ?? null,
-		lastSyncedAt: prompt.lastSyncedAt ?? null,
+		createdAt: normalizeTimestamp(prompt.createdAt),
+		updatedAt: normalizeTimestamp(prompt.updatedAt),
+		deletedAt: normalizeOptionalTimestamp(prompt.deletedAt),
+		lastSyncedAt: normalizeOptionalTimestamp(prompt.lastSyncedAt),
 		syncStatus: prompt.syncStatus ?? "local",
 		cloudKitRecordName: prompt.cloudKitRecordName ?? null,
 	};
+}
+
+function normalizeTimestamp(value: unknown): string {
+	if (value instanceof Date) {
+		return value.toISOString();
+	}
+
+	if (typeof value === "string" && value.length > 0) {
+		return value;
+	}
+
+	return new Date().toISOString();
+}
+
+function normalizeOptionalTimestamp(value: unknown): string | null {
+	if (value == null) {
+		return null;
+	}
+
+	if (value instanceof Date) {
+		return value.toISOString();
+	}
+
+	if (typeof value === "string" && value.length > 0) {
+		return value;
+	}
+
+	return null;
 }
 
 function isMissingFile(error: unknown): boolean {
