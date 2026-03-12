@@ -18,6 +18,7 @@ module.exports = {
 			to: "native",
 		},
 	],
+	afterSign: "scripts/after-sign.cjs",
 	asar: true,
 	mac: {
 		target: ["dir"],
