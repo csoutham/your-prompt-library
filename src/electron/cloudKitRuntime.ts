@@ -9,6 +9,8 @@ export class CloudKitRuntimeService {
 		available: false,
 		accountStatus: "unknown",
 		syncInFlight: false,
+		phase: "idle",
+		lastAttemptAt: null,
 		lastSyncAt: null,
 		lastError: null,
 	};
@@ -37,6 +39,8 @@ export class CloudKitRuntimeService {
 		this.status = {
 			...this.status,
 			syncInFlight: true,
+			phase: "starting",
+			lastAttemptAt: new Date().toISOString(),
 			lastError: null,
 		};
 		this.syncInFlight = this.runSync().finally(() => {
@@ -44,6 +48,7 @@ export class CloudKitRuntimeService {
 			this.status = {
 				...this.status,
 				syncInFlight: false,
+				phase: this.status.lastError ? "error" : "idle",
 			};
 		});
 		return this.syncInFlight;
@@ -55,6 +60,10 @@ export class CloudKitRuntimeService {
 
 	private async runSync() {
 		try {
+			this.status = {
+				...this.status,
+				phase: "checking-account",
+			};
 			const status = await this.bridge.accountStatus();
 			this.status = {
 				...this.status,
@@ -62,16 +71,32 @@ export class CloudKitRuntimeService {
 				available: status.result?.accountStatus === "available",
 			};
 			if (status.result?.accountStatus !== "available") {
+				this.status = {
+					...this.status,
+					phase: "idle",
+				};
 				return;
 			}
 
+			this.status = {
+				...this.status,
+				phase: "ensuring-zone",
+			};
 			await this.bridge.ensureZone();
 
+			this.status = {
+				...this.status,
+				phase: "pulling",
+			};
 			const syncState = await this.promptStore.readSyncState();
 			const pullResponse = await this.bridge.pullChanges(syncState);
 			await this.promptStore.applyCloudKitPullPayload(pullResponse.payload);
 			await this.promptStore.writeSyncState(pullResponse.syncState);
 
+			this.status = {
+				...this.status,
+				phase: "planning-push",
+			};
 			const plan = await this.promptStore.buildCloudKitPushPlan();
 			const hasPushWork =
 				plan.foldersToSave.length > 0 ||
@@ -79,29 +104,38 @@ export class CloudKitRuntimeService {
 				plan.recordsToDelete.length > 0;
 
 			if (!hasPushWork) {
+				const completedAt = new Date().toISOString();
 				await this.promptStore.markCloudKitSyncCompleted({
-					lastSyncAt: new Date().toISOString(),
+					lastSyncAt: completedAt,
 				});
 				this.status = {
 					...this.status,
-					lastSyncAt: new Date().toISOString(),
+					lastSyncAt: completedAt,
+					phase: "idle",
 				};
 				return;
 			}
 
+			this.status = {
+				...this.status,
+				phase: "pushing",
+			};
 			await this.bridge.pushChanges(plan);
+			const completedAt = new Date().toISOString();
 			await this.promptStore.acknowledgeCloudKitPushPlan(plan, {
-				lastSyncAt: new Date().toISOString(),
+				lastSyncAt: completedAt,
 			});
 			this.status = {
 				...this.status,
-				lastSyncAt: new Date().toISOString(),
+				lastSyncAt: completedAt,
+				phase: "idle",
 			};
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			this.status = {
 				...this.status,
 				lastError: message,
+				phase: "error",
 			};
 			console.warn("[CloudKit] sync skipped:", error);
 		}

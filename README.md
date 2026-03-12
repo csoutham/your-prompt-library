@@ -1,10 +1,10 @@
 # Your Prompt Library
 
-`v0.9.26`
+`v0.9.27`
 
 Your Prompt Library is a local-first macOS desktop app for collecting AI prompts in folders. It is built with Electron, Bun, React, and a file-backed Markdown store so prompts stay readable and portable on disk.
 
-## What ships in v0.9.26
+## What ships in v0.9.27
 
 - Folder tree with nested folders
 - Parent and child folders only, with inline subfolder creation on parent rows
@@ -40,6 +40,7 @@ Your Prompt Library is a local-first macOS desktop app for collecting AI prompts
 - The native CloudKit bridge now supports private-database zone setup plus real pull and push commands over JSON
 - Electron now runs a background CloudKit runtime service that pulls on launch and schedules sync after local prompt or folder mutations
 - The header now includes a compact CloudKit sync status control with live state, last-sync context, and one-click manual resync
+- CloudKit runtime status now exposes sync phases and last-attempt timing, and native bridge calls time out instead of spinning indefinitely
 - Native app menu labels now use `Your Prompt Library`, and the tray uses an Electron-friendly PNG template icon
 - App bundles now declare `ITSAppUsesNonExemptEncryption=false` in `Info.plist` to align with the export compliance exemption path
 - Packaged tray icon lookup now reads from the app bundle path used in production, not just the dev filesystem layout

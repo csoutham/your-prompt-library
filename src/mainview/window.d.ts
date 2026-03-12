@@ -4,6 +4,7 @@ import type {
 	PromptRecord,
 	PromptSummary,
 } from "../shared/prompt-store";
+import type { CloudKitRuntimeStatus } from "../shared/cloudkit";
 
 declare global {
 	interface Window {
@@ -46,20 +47,8 @@ declare global {
 				result?: Record<string, string>;
 				error?: string;
 			}>;
-			cloudKitSyncNow: () => Promise<{
-				available: boolean;
-				accountStatus: string;
-				syncInFlight: boolean;
-				lastSyncAt: string | null;
-				lastError: string | null;
-			}>;
-			cloudKitSyncStatus: () => Promise<{
-				available: boolean;
-				accountStatus: string;
-				syncInFlight: boolean;
-				lastSyncAt: string | null;
-				lastError: string | null;
-			}>;
+			cloudKitSyncNow: () => Promise<CloudKitRuntimeStatus>;
+			cloudKitSyncStatus: () => Promise<CloudKitRuntimeStatus>;
 		};
 	}
 }

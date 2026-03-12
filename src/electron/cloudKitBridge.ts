@@ -23,7 +23,10 @@ import type {
 type PendingRequest = {
 	resolve: (response: CloudKitBridgeResponse) => void;
 	reject: (error: Error) => void;
+	timeout: Timer;
 };
+
+const BRIDGE_REQUEST_TIMEOUT_MS = 15000;
 
 export class CloudKitBridgeClient {
 	private process: ChildProcessWithoutNullStreams | null = null;
@@ -104,7 +107,14 @@ export class CloudKitBridgeClient {
 		const request: CloudKitBridgeRequest = { id, command, payload };
 
 		return new Promise<CloudKitBridgeResponse>((resolve, reject) => {
-			this.pending.set(id, { resolve, reject });
+			const timeout = setTimeout(() => {
+				if (!this.pending.has(id)) {
+					return;
+				}
+				this.pending.delete(id);
+				reject(new Error(`CloudKit bridge timed out during ${command}.`));
+			}, BRIDGE_REQUEST_TIMEOUT_MS);
+			this.pending.set(id, { resolve, reject, timeout });
 			this.process?.stdin.write(`${JSON.stringify(request)}\n`);
 		});
 	}
@@ -170,6 +180,7 @@ export class CloudKitBridgeClient {
 				continue;
 			}
 			this.pending.delete(response.id);
+			clearTimeout(pending.timeout);
 
 			if (response.ok) {
 				pending.resolve(response);
@@ -181,6 +192,7 @@ export class CloudKitBridgeClient {
 
 	private rejectAll(error: Error) {
 		for (const pending of this.pending.values()) {
+			clearTimeout(pending.timeout);
 			pending.reject(error);
 		}
 		this.pending.clear();

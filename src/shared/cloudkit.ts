@@ -72,6 +72,8 @@ export type CloudKitRuntimeStatus = {
 	available: boolean;
 	accountStatus: string;
 	syncInFlight: boolean;
+	phase: string;
+	lastAttemptAt: string | null;
 	lastSyncAt: string | null;
 	lastError: string | null;
 };

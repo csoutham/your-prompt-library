@@ -93,6 +93,8 @@ function App() {
 		available: false,
 		accountStatus: "unknown",
 		syncInFlight: false,
+		phase: "idle",
+		lastAttemptAt: null,
 		lastSyncAt: null,
 		lastError: null,
 	});
@@ -1187,7 +1189,20 @@ function formatDateTime(value: string): string {
 
 function cloudSyncLabel(status: CloudKitRuntimeStatus): string {
 	if (status.syncInFlight) {
-		return "Syncing";
+		switch (status.phase) {
+			case "checking-account":
+				return "Checking iCloud";
+			case "ensuring-zone":
+				return "Preparing sync";
+			case "pulling":
+				return "Downloading";
+			case "planning-push":
+				return "Comparing";
+			case "pushing":
+				return "Uploading";
+			default:
+				return "Syncing";
+		}
 	}
 
 	if (status.lastError) {
@@ -1208,7 +1223,11 @@ function cloudSyncLabel(status: CloudKitRuntimeStatus): string {
 function cloudSyncTooltip(status: CloudKitRuntimeStatus): string {
 	const lines = [
 		cloudSyncLabel(status),
+		`Phase: ${status.phase}`,
 		`Account: ${status.accountStatus}`,
+		status.lastAttemptAt
+			? `Last attempt: ${formatDateTime(status.lastAttemptAt)}`
+			: "Last attempt: not yet",
 		status.lastSyncAt ? `Last sync: ${formatDateTime(status.lastSyncAt)}` : "Last sync: not yet",
 	];
 

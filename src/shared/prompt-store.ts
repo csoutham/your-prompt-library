@@ -1,3 +1,5 @@
+import type { CloudKitRuntimeStatus } from "./cloudkit";
+
 export type SyncStatus = "local" | "modified" | "synced" | "conflict";
 
 export type SyncMetadata = {
@@ -179,23 +181,11 @@ export type PromptStoreRpcSchema = {
 			};
 			cloudKitSyncNow: {
 				params: undefined;
-				response: {
-					available: boolean;
-					accountStatus: string;
-					syncInFlight: boolean;
-					lastSyncAt: string | null;
-					lastError: string | null;
-				};
+				response: CloudKitRuntimeStatus;
 			};
 			cloudKitSyncStatus: {
 				params: undefined;
-				response: {
-					available: boolean;
-					accountStatus: string;
-					syncInFlight: boolean;
-					lastSyncAt: string | null;
-					lastError: string | null;
-				};
+				response: CloudKitRuntimeStatus;
 			};
 		};
 		messages: {};
