@@ -412,8 +412,7 @@ kbd {
 	transition: opacity 140ms ease, transform 140ms ease;
 }
 
-.folder-tree__item:hover .folder-tree__actions,
-.folder-tree__row--active .folder-tree__actions {
+.folder-tree__item:hover .folder-tree__actions {
 	opacity: 1;
 	pointer-events: auto;
 	transform: translateX(0);
