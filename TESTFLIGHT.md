@@ -45,7 +45,6 @@ The resulting upload artifact is:
 ## Notes
 
 - The bundle identifier is configured as `com.cjsoutham.promptlibrary` in `package.json`.
-- The Team ID for this release path is `EUGLUJ6T59`.
 - The app uses the macOS app sandbox in TestFlight mode and allows read/write access only to user-selected files outside its app container.
 - The Electron Builder MAS target is intended to replace the earlier Electrobun-based App Store packaging path that failed Transporter ingestion.
 - MAS signing uses Electron Builder's automatic matching against the provisioning profile rather than a hard-coded `3rd Party Mac Developer Application` name.
