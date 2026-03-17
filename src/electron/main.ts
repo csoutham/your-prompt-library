@@ -62,7 +62,18 @@ function buildApplicationMenu() {
 		Menu.buildFromTemplate([
 			{
 				label: "Your Prompt Library",
-				submenu: [{ role: "about" }, { type: "separator" }, { role: "quit" }],
+				submenu: [
+					{ role: "about" },
+					{ type: "separator" },
+					{
+						label: "Open Your Prompt Library",
+						click: () => {
+							void showMainWindow().catch(logWindowOpenError);
+						},
+					},
+					{ type: "separator" },
+					{ role: "quit" },
+				],
 			},
 			{
 				label: "Edit",
@@ -80,7 +91,18 @@ function buildApplicationMenu() {
 			},
 			{
 				label: "Window",
-				submenu: [{ role: "minimize" }, { role: "zoom" }],
+				submenu: [
+					{
+						label: "Open Your Prompt Library",
+						click: () => {
+							void showMainWindow().catch(logWindowOpenError);
+						},
+					},
+					{ type: "separator" },
+					{ role: "minimize" },
+					{ role: "zoom" },
+					{ role: "close" },
+				],
 			},
 		]),
 	);
@@ -139,7 +161,7 @@ async function mainViewUrl() {
 
 async function createWindow() {
 	const url = await mainViewUrl();
-	mainWindow = new BrowserWindow({
+	const window = new BrowserWindow({
 		title: "Your prompt library",
 		width: 1440,
 		height: 920,
@@ -154,30 +176,50 @@ async function createWindow() {
 			sandbox: false,
 		},
 	});
+	mainWindow = window;
 
-	mainWindow.once("ready-to-show", () => mainWindow?.show());
+	window.once("ready-to-show", () => window.show());
+	window.on("closed", () => {
+		if (mainWindow === window) {
+			mainWindow = null;
+		}
+	});
 
 	if (isDev) {
-		await mainWindow.loadURL(url);
+		await window.loadURL(url);
 	} else {
-		await mainWindow.loadFile(join(app.getAppPath(), "dist", "index.html"));
+		await window.loadFile(join(app.getAppPath(), "dist", "index.html"));
 	}
 
-	mainWindow.webContents.on("did-finish-load", async () => {
+	window.webContents.on("did-finish-load", async () => {
 		const folders = await promptStore.listFolders();
 		const title = folders[0]?.name
 			? `Your prompt library - ${folders[0].name}`
 			: "Your prompt library";
-		mainWindow?.setTitle(title);
+		window.setTitle(title);
 	});
 
-	mainWindow.webContents.on("context-menu", (_event, params) => {
-		if (!mainWindow) {
-			return;
-		}
-
-		buildContextMenu(mainWindow, params);
+	window.webContents.on("context-menu", (_event, params) => {
+		buildContextMenu(window, params);
 	});
+}
+
+async function showMainWindow() {
+	if (!mainWindow || mainWindow.isDestroyed()) {
+		await createWindow();
+		return;
+	}
+
+	if (mainWindow.isMinimized()) {
+		mainWindow.restore();
+	}
+
+	mainWindow.show();
+	mainWindow.focus();
+}
+
+function logWindowOpenError(error: unknown) {
+	console.error("Unable to open main window:", error);
 }
 
 async function copyPromptToClipboard(promptId: string) {
@@ -250,11 +292,7 @@ async function refreshTrayMenu() {
 			{
 				label: "Open Your Prompt Library",
 				click: () => {
-					if (!mainWindow) {
-						return;
-					}
-					mainWindow.show();
-					mainWindow.focus();
+					void showMainWindow().catch(logWindowOpenError);
 				},
 			},
 			{ label: "Quit", role: "quit" },
@@ -370,10 +408,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("activate", async () => {
-	if (BrowserWindow.getAllWindows().length === 0) {
-		await createWindow();
-	}
-	mainWindow?.show();
+	await showMainWindow();
 });
 
 app.on("window-all-closed", () => {
