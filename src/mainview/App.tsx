@@ -1,81 +1,25 @@
+import { DownloadSimple, Keyboard, UploadSimple } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-	ArrowBendUpRight,
-	CaretDown,
-	Check,
-	Copy,
-	DownloadSimple,
-	FolderSimplePlus,
-	FolderSimpleDashed,
-	PencilSimple,
-	Keyboard,
-	Trash,
-	UploadSimple,
-} from "@phosphor-icons/react";
-import type {
-	FolderRecord,
-	PromptRecord,
-	PromptSummary,
-} from "../shared/prompt-store";
+import type { FolderRecord, PromptRecord, PromptSummary } from "../shared/prompt-store";
 import { promptStoreApi } from "./api";
-
-type DialogState =
-	| {
-			type: "create-folder";
-			title: string;
-			description: string;
-			submitLabel: string;
-			initialValue: string;
-			parentId: string | null;
-	  }
-	| {
-			type: "rename-folder";
-			title: string;
-			description: string;
-			submitLabel: string;
-			initialValue: string;
-			folderId: string;
-	  }
-	| {
-			type: "delete-folder";
-			title: string;
-			description: string;
-			submitLabel: string;
-			folderId: string;
-	  }
-	| {
-			type: "delete-prompt";
-			title: string;
-			description: string;
-			submitLabel: string;
-			promptId: string;
-	  }
-	| {
-			type: "move-prompt";
-			title: string;
-			description: string;
-			submitLabel: string;
-			promptId: string;
-			initialFolderId: string;
-	  }
-	| {
-			type: "import-library";
-			title: string;
-			description: string;
-			submitLabel: string;
-	  }
-	| {
-			type: "shortcuts";
-			title: string;
-			description: string;
-			submitLabel: string;
-	  }
-	| null;
-
-const DEFAULT_PROMPT_TITLE = "Untitled Prompt";
+import { EditorPanel } from "./components/EditorPanel";
+import { FolderTree } from "./components/FolderTree";
+import { LibraryDialog } from "./components/LibraryDialog";
+import { PromptListPanel } from "./components/PromptListPanel";
+import type { DialogState } from "./dialogState";
+import {
+	DEFAULT_PROMPT_TITLE,
+	folderNameFor,
+	mergePromptSummaries,
+	replacePromptSummary,
+	sortFolders,
+	sortPrompts,
+	summarizePrompt,
+	type SortMode,
+} from "./promptLibrary";
 
 function App() {
-	const [sortMode, setSortMode] = useState<"updated" | "title" | "created">("updated");
+	const [sortMode, setSortMode] = useState<SortMode>("updated");
 	const [folders, setFolders] = useState<FolderRecord[]>([]);
 	const [promptSummaries, setPromptSummaries] = useState<PromptSummary[]>([]);
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -205,21 +149,18 @@ function App() {
 		}
 
 		const timeout = window.setTimeout(() => {
-			setCopiedPromptId((current) =>
-				current === copiedPromptId ? null : current,
-			);
+			setCopiedPromptId((current) => (current === copiedPromptId ? null : current));
 		}, 1500);
 
 		return () => window.clearTimeout(timeout);
 	}, [copiedPromptId]);
 
 	const visiblePrompts = useMemo(() => {
-		const base =
-			searchQuery.trim()
-				? promptSummaries
-				: selectedFolderId
-					? promptSummaries.filter((prompt) => prompt.folderId === selectedFolderId)
-					: [];
+		const base = searchQuery.trim()
+			? promptSummaries
+			: selectedFolderId
+				? promptSummaries.filter((prompt) => prompt.folderId === selectedFolderId)
+				: [];
 
 		return [...base].sort((left, right) => sortPrompts(left, right, sortMode));
 	}, [promptSummaries, searchQuery, selectedFolderId, sortMode]);
@@ -339,10 +280,7 @@ function App() {
 		try {
 			switch (dialog.type) {
 				case "create-folder": {
-					const folder = await promptStoreApi.createFolder(
-						dialogValue,
-						dialog.parentId,
-					);
+					const folder = await promptStoreApi.createFolder(dialogValue, dialog.parentId);
 					setFolders((current) => [...current, folder].sort(sortFolders));
 					setSelectedFolderId(folder.id);
 					setSelectedPrompt(null);
@@ -352,10 +290,7 @@ function App() {
 					break;
 				}
 				case "rename-folder": {
-					const folder = await promptStoreApi.renameFolder(
-						dialog.folderId,
-						dialogValue,
-					);
+					const folder = await promptStoreApi.renameFolder(dialog.folderId, dialogValue);
 					setFolders((current) =>
 						current
 							.map((entry) => (entry.id === folder.id ? folder : entry))
@@ -366,9 +301,7 @@ function App() {
 				}
 				case "delete-folder": {
 					await promptStoreApi.deleteFolder(dialog.folderId);
-					const nextFolders = folders.filter(
-						(folder) => folder.id !== dialog.folderId,
-					);
+					const nextFolders = folders.filter((folder) => folder.id !== dialog.folderId);
 					const fallbackFolder = nextFolders[0] ?? null;
 					setFolders(nextFolders);
 					setSelectedFolderId(fallbackFolder?.id ?? null);
@@ -544,12 +477,41 @@ function App() {
 		}
 	}
 
+	function openMovePromptDialog() {
+		if (!selectedPrompt) {
+			return;
+		}
+
+		openDialog({
+			type: "move-prompt",
+			title: "Move prompt",
+			description: `Move "${selectedPrompt.title}" to another folder or subfolder.`,
+			submitLabel: "Move Prompt",
+			promptId: selectedPrompt.id,
+			initialFolderId: selectedPrompt.folderId,
+		});
+	}
+
+	function openDeletePromptDialog() {
+		if (!selectedPrompt) {
+			return;
+		}
+
+		openDialog({
+			type: "delete-prompt",
+			title: "Delete prompt",
+			description: `Delete "${selectedPrompt.title}". This cannot be undone.`,
+			submitLabel: "Delete Prompt",
+			promptId: selectedPrompt.id,
+		});
+	}
+
 	if (isLoading) {
 		return <div className="loading-shell">Loading your prompt library…</div>;
 	}
 
 	return (
-			<div className="app-shell">
+		<div className="app-shell">
 			<div className="app-live-region" aria-live="polite">
 				{errorMessage ?? (isSaving ? "Autosaving…" : statusMessage)}
 			</div>
@@ -564,7 +526,10 @@ function App() {
 						title="Export library"
 						onClick={() => void exportLibrary()}
 					>
-						<DownloadSimple className="button__icon-svg button__icon-svg--large" aria-hidden="true" />
+						<DownloadSimple
+							className="button__icon-svg button__icon-svg--large"
+							aria-hidden="true"
+						/>
 					</button>
 					<button
 						className="button button--icon"
@@ -580,7 +545,10 @@ function App() {
 							})
 						}
 					>
-						<UploadSimple className="button__icon-svg button__icon-svg--large" aria-hidden="true" />
+						<UploadSimple
+							className="button__icon-svg button__icon-svg--large"
+							aria-hidden="true"
+						/>
 					</button>
 					<button
 						className="button button--icon"
@@ -620,13 +588,13 @@ function App() {
 					</div>
 
 					<div className="folder-tree">
-						{renderFolderTree(
-							folders,
-							null,
-							selectedFolderId,
-							selectFolder,
-							folderPromptCounts,
-							(folder) =>
+						<FolderTree
+							folders={folders}
+							parentId={null}
+							selectedFolderId={selectedFolderId}
+							onSelect={selectFolder}
+							folderPromptCounts={folderPromptCounts}
+							onCreateChild={(folder) =>
 								openDialog({
 									type: "create-folder",
 									title: "New subfolder",
@@ -634,8 +602,9 @@ function App() {
 									submitLabel: "Create Subfolder",
 									initialValue: "New Folder",
 									parentId: folder.id,
-								}),
-							(folder) =>
+								})
+							}
+							onRename={(folder) =>
 								openDialog({
 									type: "rename-folder",
 									title: "Rename folder",
@@ -643,512 +612,68 @@ function App() {
 									submitLabel: "Rename Folder",
 									initialValue: folder.name,
 									folderId: folder.id,
-								}),
-							(folder) =>
+								})
+							}
+							onDelete={(folder) =>
 								openDialog({
 									type: "delete-folder",
 									title: "Delete folder",
 									description: `Delete "${folder.name}". Non-empty folders are blocked.`,
 									submitLabel: "Delete Folder",
 									folderId: folder.id,
-								}),
-						)}
+								})
+							}
+						/>
 					</div>
 				</aside>
 
-				<section className="prompt-list-panel">
-					<div className="panel-header">
-						<h2>{searchQuery ? "Search Results" : selectedFolder?.name ?? "Library"}</h2>
-						<button
-							className="button button--primary"
-							disabled={!selectedFolderId}
-							onClick={() => void createPrompt()}
-						>
-							New Prompt
-						</button>
-					</div>
+				<PromptListPanel
+					searchQuery={searchQuery}
+					selectedFolderName={searchQuery ? "Search Results" : selectedFolder?.name ?? "Library"}
+					sortMode={sortMode}
+					searchInputRef={searchInputRef}
+					selectedFolderId={selectedFolderId}
+					selectedPromptId={selectedPrompt?.id ?? null}
+					visiblePrompts={visiblePrompts}
+					folders={folders}
+					onSortModeChange={setSortMode}
+					onSearchChange={(query) => void handleSearchChange(query)}
+					onCreatePrompt={createPrompt}
+					onSelectPrompt={selectPrompt}
+				/>
 
-					<div className="prompt-list-toolbar">
-						<label className="sort-field">
-							<span>Sort</span>
-							<div className="select-shell">
-								<select
-									value={sortMode}
-									onChange={(event) =>
-										setSortMode(event.target.value as "updated" | "title" | "created")
-									}
-								>
-									<option value="updated">Recently updated</option>
-									<option value="created">Recently created</option>
-									<option value="title">Title</option>
-								</select>
-								<CaretDown className="select-shell__icon" aria-hidden="true" weight="bold" />
-							</div>
-						</label>
-						<label className="search-field">
-							<span>Search</span>
-							<input
-								ref={searchInputRef}
-								value={searchQuery}
-								onChange={(event) => void handleSearchChange(event.target.value)}
-								placeholder="Search titles and Markdown"
-							/>
-						</label>
-					</div>
-
-					<div className="prompt-list">
-						{visiblePrompts.length === 0 ? (
-							<div className="empty-state">
-								<p>No prompts yet.</p>
-								<span>Create one in this folder to start your library.</span>
-								<button
-									className="button button--primary"
-									disabled={!selectedFolderId}
-									onClick={() => void createPrompt()}
-								>
-									Create First Prompt
-								</button>
-							</div>
-						) : (
-							visiblePrompts.map((prompt) => (
-								<button
-									key={prompt.id}
-									className={`prompt-card ${
-										selectedPrompt?.id === prompt.id ? "prompt-card--active" : ""
-									}`}
-									onClick={() => void selectPrompt(prompt.id)}
-								>
-									<div className="prompt-card__header">
-										<div className="prompt-card__title">{prompt.title}</div>
-										<ArrowBendUpRight
-											className="prompt-card__chevron"
-											aria-hidden="true"
-											weight="bold"
-										/>
-									</div>
-									<div className="prompt-card__excerpt">
-										{prompt.excerpt || "Empty prompt"}
-									</div>
-									<div className="prompt-card__meta">
-										<span>{folderNameFor(prompt.folderId, folders)}</span>
-										<span>{formatTimestamp(prompt.updatedAt)}</span>
-									</div>
-								</button>
-							))
-						)}
-					</div>
-				</section>
-
-				<section className="editor-panel">
-					<div className="panel-header">
-						<div>
-							<p className="eyebrow">Editor</p>
-							<h2>{selectedPrompt?.title ?? "Select a prompt"}</h2>
-						</div>
-						<div className="editor-actions">
-							<button
-								className="button button--icon"
-								disabled={!selectedPrompt}
-								aria-label="Move prompt"
-								title={
-									selectedPrompt
-										? `Move "${selectedPrompt.title}"`
-										: "Move prompt"
-								}
-								onClick={() =>
-									selectedPrompt &&
-									openDialog({
-										type: "move-prompt",
-										title: "Move prompt",
-										description: `Move "${selectedPrompt.title}" to another folder or subfolder.`,
-										submitLabel: "Move Prompt",
-										promptId: selectedPrompt.id,
-										initialFolderId: selectedPrompt.folderId,
-									})
-								}
-							>
-								<FolderSimpleDashed className="button__icon-svg" aria-hidden="true" />
-							</button>
-							<button
-								className={`button button--icon ${
-									copiedPromptId === selectedPrompt?.id ? "button--success" : ""
-								}`}
-								disabled={!selectedPrompt}
-								aria-label={copiedPromptId === selectedPrompt?.id ? "Copied" : "Copy prompt"}
-								title={
-									copiedPromptId === selectedPrompt?.id
-										? "Copied"
-										: selectedPrompt
-											? `Copy "${selectedPrompt.title}"`
-											: "Copy prompt"
-								}
-								onClick={() => void copyPrompt()}
-							>
-								{copiedPromptId === selectedPrompt?.id ? (
-									<Check className="button__icon-svg" aria-hidden="true" weight="bold" />
-								) : (
-									<Copy className="button__icon-svg" aria-hidden="true" />
-								)}
-							</button>
-							<button
-								className="button button--icon button--danger"
-								disabled={!selectedPrompt}
-								aria-label="Delete prompt"
-								title={
-									selectedPrompt
-										? `Delete "${selectedPrompt.title}"`
-										: "Delete prompt"
-								}
-								onClick={() =>
-									selectedPrompt &&
-									openDialog({
-										type: "delete-prompt",
-										title: "Delete prompt",
-										description: `Delete "${selectedPrompt.title}". This cannot be undone.`,
-										submitLabel: "Delete Prompt",
-										promptId: selectedPrompt.id,
-									})
-								}
-							>
-								<Trash className="button__icon-svg" aria-hidden="true" />
-							</button>
-						</div>
-					</div>
-
-					{selectedPrompt ? (
-						<div className="editor-pane">
-							<label className="editor-field">
-								<span>Title</span>
-								<input
-									value={draftTitle}
-									onChange={(event) => setDraftTitle(event.target.value)}
-									onFocus={handleTitleFocus}
-									onBlur={handleTitleBlur}
-								/>
-							</label>
-							<label className="editor-field editor-field--body">
-								<span>Contents</span>
-								<textarea
-									value={draftBody}
-									onChange={(event) => setDraftBody(event.target.value)}
-									placeholder="# Prompt title&#10;&#10;Write the reusable instructions here."
-								/>
-							</label>
-							<div className="editor-ribbon editor-ribbon--footer">
-								<span className="editor-ribbon__label">Stats</span>
-								<span className="editor-ribbon__value">
-									{draftBody.trim() ? `${draftBody.trim().split(/\s+/).length} words` : "Empty draft"}
-								</span>
-							</div>
-							<div className="editor-meta">
-								<div>
-									<span className="editor-meta__label">Folder</span>
-									<strong>{folderNameFor(selectedPrompt.folderId, folders)}</strong>
-								</div>
-								<div>
-									<span className="editor-meta__label">Created</span>
-									<strong>{formatDateTime(selectedPrompt.createdAt)}</strong>
-								</div>
-								<div>
-									<span className="editor-meta__label">Updated</span>
-									<strong>{formatDateTime(selectedPrompt.updatedAt)}</strong>
-								</div>
-							</div>
-						</div>
-					) : (
-						<div className="empty-state empty-state--editor">
-							<p>Choose a prompt or create a new one.</p>
-							<span>Markdown autosaves after you pause typing.</span>
-							<button
-								className="button button--primary"
-								disabled={!selectedFolderId}
-								onClick={() => void createPrompt()}
-							>
-								New Prompt
-							</button>
-						</div>
-					)}
-				</section>
+				<EditorPanel
+					selectedPrompt={selectedPrompt}
+					selectedFolderId={selectedFolderId}
+					folders={folders}
+					draftTitle={draftTitle}
+					draftBody={draftBody}
+					copiedPromptId={copiedPromptId}
+					onDraftTitleChange={setDraftTitle}
+					onDraftBodyChange={setDraftBody}
+					onTitleFocus={handleTitleFocus}
+					onTitleBlur={handleTitleBlur}
+					onCopyPrompt={copyPrompt}
+					onMovePrompt={openMovePromptDialog}
+					onDeletePrompt={openDeletePromptDialog}
+					onCreatePrompt={createPrompt}
+				/>
 			</div>
 
 			{dialog ? (
-				<div className="dialog-scrim" onClick={() => closeDialog()}>
-					<div className="dialog-card" onClick={(event) => event.stopPropagation()}>
-						<p className="eyebrow">{dialog.title}</p>
-						<h3>{dialog.title}</h3>
-						<p className="dialog-card__description">{dialog.description}</p>
-
-						{"initialValue" in dialog ? (
-							<label className="editor-field">
-								<span>Name</span>
-								<input
-									ref={dialogInputRef}
-									value={dialogValue}
-									onChange={(event) => setDialogValue(event.target.value)}
-									onKeyDown={(event) => {
-										if (event.key === "Enter") {
-											event.preventDefault();
-											void submitDialog();
-										}
-									}}
-								/>
-							</label>
-						) : null}
-
-						{dialog.type === "move-prompt" ? (
-							<label className="editor-field">
-								<span>Destination folder</span>
-								<div className="select-shell">
-									<select
-										value={dialogValue}
-										onChange={(event) => setDialogValue(event.target.value)}
-									>
-										{folders.map((folder) => (
-											<option key={folder.id} value={folder.id}>
-												{folderPathLabel(folder, folders)}
-											</option>
-										))}
-									</select>
-									<CaretDown className="select-shell__icon" aria-hidden="true" weight="bold" />
-								</div>
-							</label>
-						) : null}
-
-						{dialog.type === "shortcuts" ? (
-							<div className="shortcut-list">
-								<div className="shortcut-card__row">
-									<span>Search</span>
-									<kbd>Cmd F</kbd>
-								</div>
-								<div className="shortcut-card__row">
-									<span>New prompt</span>
-									<kbd>Cmd N</kbd>
-								</div>
-								<div className="shortcut-card__row">
-									<span>New folder</span>
-									<kbd>Cmd Shift N</kbd>
-								</div>
-								<div className="shortcut-card__row">
-									<span>Save</span>
-									<kbd>Cmd S</kbd>
-								</div>
-								<div className="shortcut-card__row">
-									<span>Dismiss dialog</span>
-									<kbd>Esc</kbd>
-								</div>
-							</div>
-						) : null}
-
-						<div className="dialog-card__actions">
-							<button className="button" onClick={() => closeDialog()}>
-								Cancel
-							</button>
-							<button
-								className={`button ${
-									dialog.type.includes("delete")
-										? "button--danger"
-										: "button--primary"
-								}`}
-								disabled={
-									isSubmittingDialog ||
-									(("initialValue" in dialog && dialogValue.trim().length === 0) ||
-										(dialog.type === "move-prompt" && dialogValue.trim().length === 0))
-								}
-								onClick={() => void submitDialog()}
-							>
-								{isSubmittingDialog ? "Working…" : dialog.submitLabel}
-							</button>
-						</div>
-					</div>
-				</div>
+				<LibraryDialog
+					dialog={dialog}
+					dialogValue={dialogValue}
+					isSubmittingDialog={isSubmittingDialog}
+					folders={folders}
+					dialogInputRef={dialogInputRef}
+					onDialogValueChange={setDialogValue}
+					onClose={closeDialog}
+					onSubmit={submitDialog}
+				/>
 			) : null}
 		</div>
 	);
-}
-
-function renderFolderTree(
-	folders: FolderRecord[],
-	parentId: string | null,
-	selectedFolderId: string | null,
-	onSelect: (folderId: string) => void | Promise<void>,
-	folderPromptCounts: Map<string, number>,
-	onCreateChild: (folder: FolderRecord) => void,
-	onRename: (folder: FolderRecord) => void,
-	onDelete: (folder: FolderRecord) => void,
-) {
-	return folders
-		.filter((folder) => folder.parentId === parentId)
-		.map((folder) => (
-			<div key={folder.id} className="folder-tree__branch">
-				<div
-					className={`folder-tree__row ${
-						selectedFolderId === folder.id ? "folder-tree__row--active" : ""
-					}`}
-				>
-					<button
-						className={`folder-tree__item ${
-							selectedFolderId === folder.id ? "folder-tree__item--active" : ""
-						}`}
-						onClick={() => void onSelect(folder.id)}
-					>
-						<span className="folder-tree__item-label">
-							<span className="folder-tree__dot" />
-							<span>{folder.name}</span>
-						</span>
-						<span className="folder-tree__item-meta">
-							<span className="folder-tree__actions">
-								{folder.parentId === null ? (
-									<button
-										className="folder-tree__action"
-										aria-label={`Create subfolder in ${folder.name}`}
-										title={`Create subfolder in ${folder.name}`}
-										onClick={(event) => {
-											event.stopPropagation();
-											onCreateChild(folder);
-										}}
-									>
-										<FolderSimplePlus
-											className="button__icon-svg"
-											aria-hidden="true"
-										/>
-									</button>
-								) : null}
-								<button
-									className="folder-tree__action"
-									aria-label={`Rename ${folder.name}`}
-									title={`Rename ${folder.name}`}
-									onClick={(event) => {
-										event.stopPropagation();
-										onRename(folder);
-									}}
-								>
-									<PencilSimple className="button__icon-svg" aria-hidden="true" />
-								</button>
-								<button
-									className="folder-tree__action folder-tree__action--danger"
-									aria-label={`Delete ${folder.name}`}
-									title={`Delete ${folder.name}`}
-									onClick={(event) => {
-										event.stopPropagation();
-										onDelete(folder);
-									}}
-								>
-									<Trash className="button__icon-svg" aria-hidden="true" />
-								</button>
-							</span>
-							<span className="folder-tree__count">
-								{folderPromptCounts.get(folder.id) ?? 0}
-							</span>
-						</span>
-					</button>
-				</div>
-				<div className="folder-tree__children">
-					{renderFolderTree(
-						folders,
-						folder.id,
-						selectedFolderId,
-						onSelect,
-						folderPromptCounts,
-						onCreateChild,
-						onRename,
-						onDelete,
-					)}
-				</div>
-			</div>
-		));
-}
-
-function summarizePrompt(prompt: PromptRecord): PromptSummary {
-	return {
-		id: prompt.id,
-		title: prompt.title,
-		folderId: prompt.folderId,
-		createdAt: prompt.createdAt,
-		updatedAt: prompt.updatedAt,
-		deletedAt: prompt.deletedAt,
-		lastSyncedAt: prompt.lastSyncedAt,
-		syncStatus: prompt.syncStatus,
-		cloudKitRecordName: prompt.cloudKitRecordName,
-		excerpt: prompt.bodyMarkdown.replace(/\s+/g, " ").trim().slice(0, 120),
-	};
-}
-
-function replacePromptSummary(
-	current: PromptSummary[],
-	next: PromptSummary,
-): PromptSummary[] {
-	const remaining = current.filter((entry) => entry.id !== next.id);
-	return [next, ...remaining].sort((left, right) =>
-		right.updatedAt.localeCompare(left.updatedAt),
-	);
-}
-
-function mergePromptSummaries(
-	current: PromptSummary[],
-	nextForFolder: PromptSummary[],
-	folderId: string,
-): PromptSummary[] {
-	const preserved = current.filter((prompt) => prompt.folderId !== folderId);
-	return [...preserved, ...nextForFolder].sort((left, right) =>
-		right.updatedAt.localeCompare(left.updatedAt),
-	);
-}
-
-function folderNameFor(folderId: string, folders: FolderRecord[]): string {
-	return folders.find((folder) => folder.id === folderId)?.name ?? "Unknown Folder";
-}
-
-function folderPathLabel(folder: FolderRecord, folders: FolderRecord[]): string {
-	const names: string[] = [folder.name];
-	let parentId = folder.parentId;
-
-	while (parentId) {
-		const parent = folders.find((entry) => entry.id === parentId);
-		if (!parent) {
-			break;
-		}
-		names.unshift(parent.name);
-		parentId = parent.parentId;
-	}
-
-	return names.join(" / ");
-}
-
-function formatTimestamp(value: string): string {
-	return new Date(value).toLocaleDateString([], {
-		month: "short",
-		day: "numeric",
-	});
-}
-
-function formatDateTime(value: string): string {
-	return new Date(value).toLocaleString([], {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
-function sortFolders(left: FolderRecord, right: FolderRecord): number {
-	return left.name.localeCompare(right.name);
-}
-
-function sortPrompts(
-	left: PromptSummary,
-	right: PromptSummary,
-	mode: "updated" | "title" | "created",
-): number {
-	switch (mode) {
-		case "title":
-			return left.title.localeCompare(right.title);
-		case "created":
-			return right.createdAt.localeCompare(left.createdAt);
-		case "updated":
-		default:
-			return right.updatedAt.localeCompare(left.updatedAt);
-	}
 }
 
 function toMessage(error: unknown): string {
