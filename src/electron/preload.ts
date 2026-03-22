@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { PromptStoreApi } from "../shared/prompt-store";
 
 const channels = [
 	"bootstrap",
@@ -26,6 +27,6 @@ const promptStore = Object.fromEntries(
 		channel,
 		(...args: unknown[]) => ipcRenderer.invoke(`prompt-store:${channel}`, ...args),
 	]),
-) as Record<Channel, (...args: unknown[]) => Promise<unknown>>;
+) as unknown as PromptStoreApi & Record<Channel, (...args: unknown[]) => Promise<unknown>>;
 
 contextBridge.exposeInMainWorld("promptStore", promptStore);

@@ -62,85 +62,25 @@ export interface PromptRepository {
 	importSnapshot(snapshot: PromptLibrarySnapshot): Promise<void>;
 }
 
-export type PromptStoreRpcSchema = {
-	bun: {
-		requests: {
-			bootstrap: {
-				params: undefined;
-				response: BootstrapPayload;
-			};
-			listFolders: {
-				params: undefined;
-				response: FolderRecord[];
-			};
-			listPrompts: {
-				params: { folderId: string };
-				response: PromptSummary[];
-			};
-			getPrompt: {
-				params: { promptId: string };
-				response: PromptRecord | null;
-			};
-			createFolder: {
-				params: { name: string; parentId: string | null };
-				response: FolderRecord;
-			};
-			renameFolder: {
-				params: { folderId: string; name: string };
-				response: FolderRecord;
-			};
-			deleteFolder: {
-				params: { folderId: string };
-				response: { deleted: true };
-			};
-			createPrompt: {
-				params: { folderId: string; title?: string };
-				response: PromptRecord;
-			};
-			savePrompt: {
-				params: {
-					promptId: string;
-					title: string;
-					bodyMarkdown: string;
-				};
-				response: PromptRecord;
-			};
-			movePrompt: {
-				params: {
-					promptId: string;
-					folderId: string;
-				};
-				response: PromptRecord;
-			};
-			renamePrompt: {
-				params: { promptId: string; title: string };
-				response: PromptRecord;
-			};
-			deletePrompt: {
-				params: { promptId: string };
-				response: { deleted: true };
-			};
-			searchPrompts: {
-				params: { query: string };
-				response: PromptSummary[];
-			};
-			copyPrompt: {
-				params: { promptId: string };
-				response: { copied: true };
-			};
-			exportLibrary: {
-				params: undefined;
-				response: { filePath: string | null };
-			};
-			importLibrary: {
-				params: undefined;
-				response: { imported: boolean };
-			};
-		};
-		messages: {};
-	};
-	webview: {
-		requests: {};
-		messages: {};
-	};
-};
+export interface PromptStoreApi {
+	bootstrap: () => Promise<BootstrapPayload>;
+	listFolders: () => Promise<FolderRecord[]>;
+	listPrompts: (folderId: string) => Promise<PromptSummary[]>;
+	getPrompt: (promptId: string) => Promise<PromptRecord | null>;
+	createFolder: (name: string, parentId: string | null) => Promise<FolderRecord>;
+	renameFolder: (folderId: string, name: string) => Promise<FolderRecord>;
+	deleteFolder: (folderId: string) => Promise<{ deleted: true }>;
+	createPrompt: (folderId: string, title?: string) => Promise<PromptRecord>;
+	savePrompt: (
+		promptId: string,
+		title: string,
+		bodyMarkdown: string,
+	) => Promise<PromptRecord>;
+	movePrompt: (promptId: string, folderId: string) => Promise<PromptRecord>;
+	renamePrompt: (promptId: string, title: string) => Promise<PromptRecord>;
+	deletePrompt: (promptId: string) => Promise<{ deleted: true }>;
+	searchPrompts: (query: string) => Promise<PromptSummary[]>;
+	copyPrompt: (promptId: string) => Promise<{ copied: true }>;
+	exportLibrary: () => Promise<{ filePath: string | null }>;
+	importLibrary: () => Promise<{ imported: boolean }>;
+}
