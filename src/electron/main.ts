@@ -13,7 +13,7 @@ import {
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { PromptStore, PromptStoreError } from "../bun/promptStore";
+import { FilePromptRepository, PromptStoreError } from "../bun/filePromptRepository";
 import type {
 	FolderRecord,
 	PromptLibrarySnapshot,
@@ -27,7 +27,7 @@ const isDev = !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let promptStore: PromptStore;
+let promptStore: FilePromptRepository;
 type TrayMenuItem = MenuItemConstructorOptions;
 
 type PromptApi = {
@@ -395,7 +395,7 @@ const promptApi: PromptApi = {
 
 app.whenReady().then(async () => {
 	app.setName("Your Prompt Library");
-	promptStore = new PromptStore(join(app.getPath("userData"), "library"));
+	promptStore = new FilePromptRepository(join(app.getPath("userData"), "library"));
 	for (const [channel, handler] of Object.entries(promptApi)) {
 		ipcMain.handle(`prompt-store:${channel}`, async (_event, ...args) => {
 			const invoke = handler as (...parameters: unknown[]) => Promise<unknown>;

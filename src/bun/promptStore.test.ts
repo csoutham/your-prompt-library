@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import matter from "gray-matter";
-import { PromptStore } from "./promptStore";
+import { FilePromptRepository } from "./filePromptRepository";
 
 let rootDir: string;
 
@@ -15,9 +15,9 @@ afterEach(async () => {
 	await rm(rootDir, { recursive: true, force: true });
 });
 
-describe("PromptStore", () => {
+describe("FilePromptRepository", () => {
 	test("creates the default folder on first launch", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const result = await store.bootstrap();
 
 		expect(result.folders).toHaveLength(1);
@@ -26,12 +26,12 @@ describe("PromptStore", () => {
 	});
 
 	test("persists folders and prompts", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = await store.createFolder("Strategy", null);
 		const prompt = await store.createPrompt(folder.id, "Email Draft");
 		await store.savePrompt(prompt.id, "Email Draft", "# Hello\n\nWorld");
 
-		const reloaded = new PromptStore(rootDir);
+		const reloaded = new FilePromptRepository(rootDir);
 		const folders = await reloaded.listFolders();
 		const saved = await reloaded.getPrompt(prompt.id);
 
@@ -40,7 +40,7 @@ describe("PromptStore", () => {
 	});
 
 	test("searches titles and markdown body text", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = (await store.listFolders())[0]!;
 		const prompt = await store.createPrompt(folder.id, "Founder memo");
 		await store.savePrompt(prompt.id, "Founder memo", "Use this note for launch prep.");
@@ -50,7 +50,7 @@ describe("PromptStore", () => {
 	});
 
 	test("blocks deleting a non-empty folder", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = await store.createFolder("Active", null);
 		await store.createPrompt(folder.id);
 
@@ -60,7 +60,7 @@ describe("PromptStore", () => {
 	});
 
 	test("renames prompts and updates timestamps", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = (await store.listFolders())[0]!;
 		const prompt = await store.createPrompt(folder.id, "Draft");
 		const renamed = await store.renamePrompt(prompt.id, "Final Draft");
@@ -72,7 +72,7 @@ describe("PromptStore", () => {
 	});
 
 	test("preserves spaces in prompt titles during saves", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = (await store.listFolders())[0]!;
 		const prompt = await store.createPrompt(folder.id, "Draft");
 		const saved = await store.savePrompt(prompt.id, "My Prompt Title", "Body");
@@ -81,7 +81,7 @@ describe("PromptStore", () => {
 	});
 
 	test("initializes sync metadata for new records", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = await store.createFolder("Sync Ready", null);
 		const prompt = await store.createPrompt(folder.id, "Prompt");
 
@@ -92,7 +92,7 @@ describe("PromptStore", () => {
 	});
 
 	test("moves prompts between folders", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const source = await store.createFolder("Source", null);
 		const destination = await store.createFolder("Destination", source.id);
 		const prompt = await store.createPrompt(source.id, "Draft");
@@ -104,7 +104,7 @@ describe("PromptStore", () => {
 	});
 
 	test("blocks folders deeper than one child level", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const parent = await store.createFolder("Parent", null);
 		const child = await store.createFolder("Child", parent.id);
 
@@ -114,7 +114,7 @@ describe("PromptStore", () => {
 	});
 
 	test("deletes an empty folder", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = await store.createFolder("Archive", null);
 		await store.deleteFolder(folder.id);
 
@@ -123,7 +123,7 @@ describe("PromptStore", () => {
 	});
 
 	test("soft deletes prompts and hides tombstones from active queries", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = (await store.listFolders())[0]!;
 		const prompt = await store.createPrompt(folder.id, "Delete Me");
 		await store.deletePrompt(prompt.id);
@@ -134,7 +134,7 @@ describe("PromptStore", () => {
 	});
 
 	test("skips invalid prompt files without crashing", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		await store.bootstrap();
 		await writeFile(join(rootDir, "prompts", "broken.md"), "---\nid: bad\n---");
 
@@ -143,7 +143,7 @@ describe("PromptStore", () => {
 	});
 
 	test("writes prompt metadata into frontmatter", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = (await store.listFolders())[0]!;
 		const prompt = await store.createPrompt(folder.id, "Spec");
 		await store.savePrompt(prompt.id, "Spec", "## Body");
@@ -156,7 +156,7 @@ describe("PromptStore", () => {
 	});
 
 	test("exports and reimports a library snapshot", async () => {
-		const store = new PromptStore(rootDir);
+		const store = new FilePromptRepository(rootDir);
 		const folder = await store.createFolder("Imported", null);
 		const prompt = await store.createPrompt(folder.id, "Reusable");
 		await store.savePrompt(prompt.id, "Reusable", "Body");
@@ -165,7 +165,7 @@ describe("PromptStore", () => {
 
 		const nextRoot = await mkdtemp(join(tmpdir(), "prompt-store-import-"));
 		try {
-			const importedStore = new PromptStore(nextRoot);
+			const importedStore = new FilePromptRepository(nextRoot);
 			await importedStore.importSnapshot(snapshot);
 			const bootstrap = await importedStore.bootstrap();
 
