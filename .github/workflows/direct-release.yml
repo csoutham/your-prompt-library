@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -37,13 +39,39 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
 
+      - name: Check whether package version changed
+        id: version_change
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PREVIOUS_PACKAGE_JSON="$(git show "${{ github.event.before }}:package.json" 2>/dev/null || true)"
+          if [[ -z "$PREVIOUS_PACKAGE_JSON" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PREVIOUS_VERSION="$(printf '%s' "$PREVIOUS_PACKAGE_JSON" | node -e "let input=''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")"
+          CURRENT_VERSION="${{ steps.release_meta.outputs.version }}"
+
+          if [[ "$PREVIOUS_VERSION" == "$CURRENT_VERSION" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies
+        if: steps.version_change.outputs.changed == 'true'
         run: bun install --frozen-lockfile
 
       - name: Build signed direct distribution
+        if: steps.version_change.outputs.changed == 'true'
         run: bun run package:direct
 
       - name: Upload workflow artefacts
+        if: steps.version_change.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: direct-macos-release
@@ -54,6 +82,7 @@ jobs:
             release/*.zip.blockmap
 
       - name: Attach artefacts to GitHub release
+        if: steps.version_change.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_meta.outputs.tag_name }}
