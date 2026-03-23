@@ -1,7 +1,14 @@
-import { DownloadSimple, Keyboard, UploadSimple } from "@phosphor-icons/react";
+import { ClockCounterClockwise, DownloadSimple, Keyboard, UploadSimple } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FolderRecord, PromptRecord, PromptSummary } from "../shared/prompt-store";
+import type {
+	AutoExportSettings,
+	AutoExportState,
+	FolderRecord,
+	PromptRecord,
+	PromptSummary,
+} from "../shared/prompt-store";
 import { promptStoreApi } from "./api";
+import { AutoExportDialog } from "./components/AutoExportDialog";
 import { EditorPanel } from "./components/EditorPanel";
 import { FolderTree } from "./components/FolderTree";
 import { LibraryDialog } from "./components/LibraryDialog";
@@ -32,12 +39,18 @@ function App() {
 	const [statusMessage, setStatusMessage] = useState("Local library ready");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [dialog, setDialog] = useState<DialogState>(null);
+	const [autoExportState, setAutoExportState] = useState<AutoExportState | null>(null);
+	const [autoExportDraft, setAutoExportDraft] = useState<AutoExportSettings | null>(null);
+	const [isAutoExportDialogOpen, setIsAutoExportDialogOpen] = useState(false);
+	const [isSavingAutoExport, setIsSavingAutoExport] = useState(false);
+	const [autoExportErrorMessage, setAutoExportErrorMessage] = useState<string | null>(null);
 	const [dialogValue, setDialogValue] = useState("");
 	const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
 	const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 	const [isEditingDefaultTitle, setIsEditingDefaultTitle] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 	const dialogInputRef = useRef<HTMLInputElement | null>(null);
+	const autoExportRetentionInputRef = useRef<HTMLInputElement | null>(null);
 
 	useEffect(() => {
 		void loadInitialState();
@@ -180,9 +193,13 @@ function App() {
 		setErrorMessage(null);
 
 		try {
-			const payload = await promptStoreApi.bootstrap();
+			const [payload, nextAutoExportState] = await Promise.all([
+				promptStoreApi.bootstrap(),
+				promptStoreApi.getAutoExportSettings(),
+			]);
 			setFolders(payload.folders);
 			setPromptSummaries(payload.prompts);
+			setAutoExportState(nextAutoExportState);
 
 			const initialFolderId = payload.folders[0]?.id ?? null;
 			setSelectedFolderId(initialFolderId);
@@ -267,6 +284,14 @@ function App() {
 		setDialog(null);
 		setDialogValue("");
 		setIsSubmittingDialog(false);
+	}
+
+	function closeAutoExportDialog() {
+		setIsAutoExportDialogOpen(false);
+		setAutoExportErrorMessage(null);
+		if (autoExportState) {
+			setAutoExportDraft(autoExportState.settings);
+		}
 	}
 
 	async function submitDialog() {
@@ -424,6 +449,76 @@ function App() {
 		}
 	}
 
+	async function openAutoExportDialog() {
+		try {
+			const nextState = await promptStoreApi.getAutoExportSettings();
+			setAutoExportState(nextState);
+			setAutoExportDraft(nextState.settings);
+			setAutoExportErrorMessage(null);
+			setIsAutoExportDialogOpen(true);
+		} catch (error) {
+			setErrorMessage(toMessage(error));
+		}
+	}
+
+	async function chooseAutoExportFolder() {
+		try {
+			const nextState = await promptStoreApi.chooseAutoExportFolder();
+			setAutoExportState(nextState);
+			setAutoExportDraft(nextState.settings);
+			setAutoExportErrorMessage(null);
+		} catch (error) {
+			setAutoExportErrorMessage(toMessage(error));
+		}
+	}
+
+	async function saveAutoExportSettings() {
+		if (!autoExportDraft) {
+			return;
+		}
+
+		setIsSavingAutoExport(true);
+		setAutoExportErrorMessage(null);
+		try {
+			const nextState = await promptStoreApi.saveAutoExportSettings(autoExportDraft);
+			setAutoExportState(nextState);
+			setAutoExportDraft(nextState.settings);
+			setStatusMessage("Saved automatic export settings");
+			setIsAutoExportDialogOpen(false);
+		} catch (error) {
+			setAutoExportErrorMessage(toMessage(error));
+		} finally {
+			setIsSavingAutoExport(false);
+		}
+	}
+
+	async function runAutoExportNow() {
+		if (!autoExportDraft) {
+			return;
+		}
+
+		setIsSavingAutoExport(true);
+		setAutoExportErrorMessage(null);
+		try {
+			const savedState = await promptStoreApi.saveAutoExportSettings(autoExportDraft);
+			const nextState = await promptStoreApi.runAutoExportNow();
+			setAutoExportState(nextState);
+			setAutoExportDraft(nextState.settings);
+			setStatusMessage(
+				nextState.status.lastErrorMessage
+					? nextState.status.lastErrorMessage
+					: "Exported library snapshot",
+			);
+			if (savedState.status.lastErrorMessage && !nextState.status.lastErrorMessage) {
+				setAutoExportErrorMessage(null);
+			}
+		} catch (error) {
+			setAutoExportErrorMessage(toMessage(error));
+		} finally {
+			setIsSavingAutoExport(false);
+		}
+	}
+
 	async function handleSearchChange(query: string) {
 		setSearchQuery(query);
 		setErrorMessage(null);
@@ -520,6 +615,15 @@ function App() {
 					<h1>Your prompt library</h1>
 				</div>
 				<div className="app-topbar__meta">
+					<button
+						className="button"
+						aria-label="Automatic exports"
+						title="Automatic exports"
+						onClick={() => void openAutoExportDialog()}
+					>
+						<ClockCounterClockwise className="button__icon-inline" aria-hidden="true" />
+						Automatic Exports
+					</button>
 					<button
 						className="button button--icon"
 						aria-label="Export library"
@@ -670,6 +774,20 @@ function App() {
 					onDialogValueChange={setDialogValue}
 					onClose={closeDialog}
 					onSubmit={submitDialog}
+				/>
+			) : null}
+			{isAutoExportDialogOpen && autoExportState && autoExportDraft ? (
+				<AutoExportDialog
+					draft={autoExportDraft}
+					state={autoExportState}
+					errorMessage={autoExportErrorMessage}
+					isSubmitting={isSavingAutoExport}
+					retentionInputRef={autoExportRetentionInputRef}
+					onDraftChange={setAutoExportDraft}
+					onChooseFolder={chooseAutoExportFolder}
+					onRunNow={runAutoExportNow}
+					onClose={closeAutoExportDialog}
+					onSave={saveAutoExportSettings}
 				/>
 			) : null}
 		</div>

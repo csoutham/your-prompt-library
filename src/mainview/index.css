@@ -705,6 +705,10 @@ kbd {
 	box-shadow: 0 30px 90px rgba(48, 31, 19, 0.22);
 }
 
+.dialog-card--wide {
+	width: min(620px, 100%);
+}
+
 .dialog-card h3 {
 	margin: -4px 0 0;
 	font-size: 1.45rem;
@@ -715,6 +719,96 @@ kbd {
 	margin: 0;
 	color: var(--muted);
 	line-height: 1.5;
+}
+
+.dialog-card__error {
+	margin: 0;
+	color: var(--danger);
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.dialog-card__actions--split {
+	justify-content: space-between;
+	align-items: center;
+}
+
+.dialog-card__actions-secondary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.toggle-field {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border: 1px solid rgba(98, 72, 46, 0.12);
+	border-radius: 18px;
+	background: rgba(255, 252, 247, 0.86);
+}
+
+.toggle-field input {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+}
+
+.toggle-field span {
+	font-size: 0.94rem;
+	font-weight: 600;
+}
+
+.auto-export-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.auto-export-grid__full {
+	grid-column: 1 / -1;
+}
+
+.folder-picker {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.folder-picker input {
+	flex: 1;
+	min-width: 0;
+}
+
+.folder-picker .button {
+	flex-shrink: 0;
+}
+
+.auto-export-status {
+	display: grid;
+	gap: 10px;
+	padding: 14px;
+	border: 1px solid rgba(98, 72, 46, 0.08);
+	border-radius: 18px;
+	background: rgba(240, 227, 211, 0.42);
+}
+
+.auto-export-status__row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 18px;
+	font-size: 0.9rem;
+}
+
+.auto-export-status__row span {
+	color: var(--muted);
+}
+
+.auto-export-status__row strong {
+	text-align: right;
+	font-weight: 600;
 }
 
 .shortcut-list {
@@ -730,6 +824,10 @@ kbd {
 	}
 
 	.editor-meta {
+		grid-template-columns: 1fr;
+	}
+
+	.auto-export-grid {
 		grid-template-columns: 1fr;
 	}
 }
