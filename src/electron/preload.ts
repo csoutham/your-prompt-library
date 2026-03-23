@@ -18,6 +18,10 @@ const channels = [
 	"copyPrompt",
 	"exportLibrary",
 	"importLibrary",
+	"getAutoExportSettings",
+	"saveAutoExportSettings",
+	"chooseAutoExportFolder",
+	"runAutoExportNow",
 ] as const;
 
 type Channel = (typeof channels)[number];

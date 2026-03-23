@@ -44,6 +44,31 @@ export type RecordQueryOptions = {
 	includeDeleted?: boolean;
 };
 
+export type AutoExportMode = "rolling" | "timestamped";
+
+export type AutoExportSchedulePreset = "hourly" | "every-6-hours" | "daily" | "weekly";
+
+export type AutoExportSettings = {
+	enabled: boolean;
+	destinationPath: string | null;
+	mode: AutoExportMode;
+	schedulePreset: AutoExportSchedulePreset;
+	retentionCount: number;
+};
+
+export type AutoExportStatus = {
+	isRunning: boolean;
+	nextRunAt: string | null;
+	lastRunAttemptedAt: string | null;
+	lastRunSucceededAt: string | null;
+	lastErrorMessage: string | null;
+};
+
+export type AutoExportState = {
+	settings: AutoExportSettings;
+	status: AutoExportStatus;
+};
+
 export interface PromptRepository {
 	bootstrap(options?: RecordQueryOptions): Promise<BootstrapPayload>;
 	listFolders(options?: RecordQueryOptions): Promise<FolderRecord[]>;
@@ -83,4 +108,8 @@ export interface PromptStoreApi {
 	copyPrompt: (promptId: string) => Promise<{ copied: true }>;
 	exportLibrary: () => Promise<{ filePath: string | null }>;
 	importLibrary: () => Promise<{ imported: boolean }>;
+	getAutoExportSettings: () => Promise<AutoExportState>;
+	saveAutoExportSettings: (settings: AutoExportSettings) => Promise<AutoExportState>;
+	chooseAutoExportFolder: () => Promise<AutoExportState>;
+	runAutoExportNow: () => Promise<AutoExportState>;
 }

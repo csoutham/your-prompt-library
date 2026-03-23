@@ -14,6 +14,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { FilePromptRepository, PromptStoreError } from "../bun/filePromptRepository";
+import { AutoExportManager } from "./autoExportManager";
+import { AutoExportSettingsStore } from "./autoExportSettingsStore";
 import type {
 	FolderRecord,
 	PromptLibrarySnapshot,
@@ -28,6 +30,7 @@ const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let promptStore: FilePromptRepository;
+let autoExportManager: AutoExportManager;
 type TrayMenuItem = MenuItemConstructorOptions;
 
 function trayIconPath() {
@@ -368,11 +371,19 @@ const promptApi: PromptStoreApi = {
 		await refreshTrayMenu();
 		return { imported: true as const };
 	},
+	getAutoExportSettings: async () => autoExportManager.getState(),
+	saveAutoExportSettings: async (settings) => autoExportManager.saveSettings(settings),
+	chooseAutoExportFolder: async () => autoExportManager.chooseFolder(mainWindow ?? undefined),
+	runAutoExportNow: async () => autoExportManager.runNow(),
 };
 
 app.whenReady().then(async () => {
 	app.setName("Your Prompt Library");
 	promptStore = new FilePromptRepository(join(app.getPath("userData"), "library"));
+	autoExportManager = new AutoExportManager(
+		promptStore,
+		new AutoExportSettingsStore(join(app.getPath("userData"), "auto-export.json")),
+	);
 	for (const [channel, handler] of Object.entries(promptApi)) {
 		ipcMain.handle(`prompt-store:${channel}`, async (_event, ...args) => {
 			const invoke = handler as (...parameters: unknown[]) => Promise<unknown>;
@@ -380,6 +391,7 @@ app.whenReady().then(async () => {
 		});
 	}
 	buildApplicationMenu();
+	await autoExportManager.initialise();
 	await createWindow();
 	createTray();
 });
