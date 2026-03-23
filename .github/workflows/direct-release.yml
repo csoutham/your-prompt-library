@@ -5,6 +5,9 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-direct:
     runs-on: macos-15
@@ -22,6 +25,18 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Resolve release version
+        id: release_meta
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+          else
+            TAG_NAME="v$VERSION"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Validate release tag matches package version
         if: github.event_name == 'release'
@@ -50,9 +65,10 @@ jobs:
             release/*.zip.blockmap
 
       - name: Attach artefacts to GitHub release
-        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release_meta.outputs.tag_name }}
+          name: Your Prompt Library ${{ steps.release_meta.outputs.version }}
           files: |
             release/*.dmg
             release/*.dmg.blockmap
