@@ -66,6 +66,8 @@ bun run package:direct
 
 For signed and notarised direct-download builds plus GitHub Release automation, see [DIRECT-DISTRIBUTION.md](/Users/Chris/Work/Projects/Apps/PromptStore/macos/DIRECT-DISTRIBUTION.md).
 
+To populate the required GitHub Actions secrets for direct releases, use [setup-direct-release-secrets.sh](/Users/Chris/Work/Projects/Apps/PromptStore/macos/scripts/setup-direct-release-secrets.sh).
+
 ## TestFlight package
 
 ```bash

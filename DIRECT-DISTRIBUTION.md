@@ -41,6 +41,24 @@ Required GitHub secrets:
 - `APPLE_APP_SPECIFIC_PASSWORD`
 - `APPLE_TEAM_ID`
 
+To populate those secrets quickly for the current GitHub repository, use:
+
+```bash
+export APPLE_DEVELOPER_ID_APPLICATION_P12_PATH="/absolute/path/to/DeveloperIDApplication.p12"
+export APPLE_DEVELOPER_ID_APPLICATION_PASSWORD="<p12-password>"
+export APPLE_ID="<your-apple-id-email>"
+export APPLE_APP_SPECIFIC_PASSWORD="<app-specific-password>"
+export APPLE_TEAM_ID="<your-apple-team-id>"
+
+./scripts/setup-direct-release-secrets.sh
+```
+
+If you want to target a different repository:
+
+```bash
+./scripts/setup-direct-release-secrets.sh owner/repo
+```
+
 The workflow validates that the GitHub release tag matches `package.json`:
 
 - package version `1.1.0`
