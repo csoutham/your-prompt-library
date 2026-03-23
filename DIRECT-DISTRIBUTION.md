@@ -16,13 +16,13 @@ This produces:
 - `release/Your Prompt Library-<version>-arm64.dmg`
 - `release/Your Prompt Library-<version>-arm64-mac.zip`
 
-If the following environment variables are also set, the build will be notarised automatically:
+If the following environment variables are also set, the script will now notarise the app during build and then notarise and staple the final DMG automatically:
 
 - `APPLE_ID`
 - `APPLE_APP_SPECIFIC_PASSWORD`
 - `APPLE_TEAM_ID`
 
-Without those variables, the build is still signed but notarisation is skipped.
+Without those variables, the build is still signed but notarisation and DMG stapling are skipped.
 
 ## GitHub Actions automation
 
