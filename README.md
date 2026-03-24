@@ -1,6 +1,6 @@
 # Your Prompt Library
 
-`v1.1.0`
+`v1.1.1`
 
 Your Prompt Library is a local-first macOS desktop app for collecting AI prompts in folders. It is built with Electron, Bun, React, and a file-backed Markdown store so prompts stay readable and portable on disk.
 
@@ -11,7 +11,7 @@ This version has been approved for distribution on the Mac App Store and is now 
 - [Your Prompt Library on the Mac App Store](https://apps.apple.com/app/your-prompt-library/id6760317091)
 - [Latest direct download release on GitHub](https://github.com/csoutham/your-prompt-library/releases/latest)
 
-## What ships in v1.1.0
+## What ships in v1.1.1
 
 - Folder tree with parent and child folders
 - Prompt list for the selected folder
