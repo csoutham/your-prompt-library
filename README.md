@@ -25,25 +25,11 @@ This version has been approved for distribution on the Mac App Store and is now 
 - Electron Builder packaging for local builds and TestFlight submission
 - File-backed local storage under the app's user-data directory
 
-Cloud sync is intentionally not part of the current release. For now, moving data between devices is handled with import, export, and optional automatic backup exports into a synced folder such as Dropbox.
-
 ## Development
 
 ```bash
 bun install
 bun run dev:hmr
-```
-
-If a machine was installed before this fix and the Electron binary is still missing, rerun:
-
-```bash
-bun install
-```
-
-If you prefer the bundled desktop flow without Vite HMR:
-
-```bash
-bun run start
 ```
 
 ## Testing
@@ -67,6 +53,8 @@ bun run package:direct
 For signed and notarised direct-download builds plus GitHub Release automation, see [DIRECT-DISTRIBUTION.md](/Users/Chris/Work/Projects/Apps/PromptStore/macos/DIRECT-DISTRIBUTION.md).
 
 To populate the required GitHub Actions secrets for direct releases, use [setup-direct-release-secrets.sh](/Users/Chris/Work/Projects/Apps/PromptStore/macos/scripts/setup-direct-release-secrets.sh).
+
+Version bumps pushed to `main` automatically publish the matching GitHub Release for direct download.
 
 ## TestFlight package
 

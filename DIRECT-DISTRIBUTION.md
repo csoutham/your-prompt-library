@@ -31,12 +31,19 @@ At the end of the script, it also runs the release checks that matter:
 
 ## GitHub Actions automation
 
-The workflow at [direct-release.yml](/Users/Chris/Work/Projects/Apps/PromptStore/.github/workflows/direct-release.yml) builds and uploads direct-download artefacts.
+The workflow at [/Users/Chris/Work/Projects/Apps/PromptStore/macos/.github/workflows/direct-release.yml](/Users/Chris/Work/Projects/Apps/PromptStore/macos/.github/workflows/direct-release.yml) builds and uploads direct-download artefacts.
 
 Trigger modes:
 
-- `release.published`
+- version bumps in `package.json` pushed to `main`
 - manual `workflow_dispatch`
+
+For normal releases, the intended flow is:
+
+1. bump `package.json` version
+2. push `main`
+3. GitHub Actions builds the signed and notarised direct artefacts
+4. the workflow creates or updates GitHub Release tag `v<version>` and attaches the `.dmg`, `.zip`, and blockmaps
 
 Required GitHub secrets:
 
@@ -64,10 +71,7 @@ If you want to target a different repository:
 ./scripts/setup-direct-release-secrets.sh owner/repo
 ```
 
-The workflow validates that the GitHub release tag matches `package.json`:
-
-- package version `1.1.0`
-- expected release tag `v1.1.0`
+The workflow only publishes on pushes where the `version` value in `package.json` actually changes. Manual runs still force a build.
 
 ## Notes
 
